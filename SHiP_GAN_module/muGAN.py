@@ -156,7 +156,7 @@ class muGAN:
 
 		####################
 
-		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		pz_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
 		fraction_wider = 0.003
 		floor = int(np.floor(size*fraction_wider))
 		if floor > 0:
