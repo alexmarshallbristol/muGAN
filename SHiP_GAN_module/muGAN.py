@@ -109,6 +109,15 @@ class muGAN:
 		####################
 
 		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		
+		fraction_wider = 0.0005
+		floor = int(np.floor(size*fraction_wider))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			if number > 0:
+				z_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.2,size=(np.shape(z_aux[-number:]))))
+				z_aux = np.take(z_aux,np.random.permutation(z_aux.shape[0]),axis=0,out=z_aux)
+
 		fraction_gumbel = 1E-3
 		floor = int(np.floor(size*fraction_gumbel))
 		if floor > 0:
@@ -132,6 +141,14 @@ class muGAN:
 
 
 		pxpy_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		fraction_wider = 0.0005
+		floor = int(np.floor(size*fraction_wider))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			if number > 0:
+				pxpy_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.2,size=(np.shape(pxpy_aux[-number:]))))
+				pxpy_aux = np.take(pxpy_aux,np.random.permutation(pxpy_aux.shape[0]),axis=0,out=pxpy_aux)
+
 		fraction_gumbel = 1E-3
 		floor = int(np.floor(size*fraction_gumbel))
 		if floor > 0:
@@ -162,7 +179,7 @@ class muGAN:
 		if floor > 0:
 			number = np.random.poisson(lam=floor)
 			if number > 0:
-				pz_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.3,size=(np.shape(pz_aux[-number:]))))
+				pz_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.2,size=(np.shape(pz_aux[-number:]))))
 				pz_aux = np.take(pz_aux,np.random.permutation(pz_aux.shape[0]),axis=0,out=pz_aux)
 
 		fraction_low_to_redistribute = 0.2
