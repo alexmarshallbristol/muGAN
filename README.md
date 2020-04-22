@@ -7,6 +7,8 @@ experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.044
 
 *To run this code an installation of [Keras](https://keras.io/) is required.*
 
+**Python script must be run in same directory as the folder 'SHiP_GAN_module', can improve this if necessary.**
+
 First step is to import the library and initialise the muGAN class:
 ```
 from SHiP_GAN_module import muGAN
