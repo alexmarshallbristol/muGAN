@@ -26,7 +26,7 @@ muGAN = muGAN()
 
 To generate physical distributions of muon kinemtics the following command can be used:
 ```
-muon_kinematic_vectors = muGAN.generate(size=10000)
+muon_kinematic_vectors = muGAN.generate(size=10000, tuned_aux=True)
 ```
 
 The library also has a plotting function:
@@ -42,7 +42,7 @@ An example of the results obtained with this procedure are presented in [Generat
 The GANs in this library have conditional style architectures. The generator network has auxiliary inputs which correspond to physical properties of muons. To generate physical muon kinematic distributions these auxiliary inputs should be single tailed normal distributions with a scale of 1. However, to boost the generated output in a certain direction, these auxilary distributions can be widened. Here is and example where we ask for muons with large P_t values:
 ```
 size = 10000
-boosted_auxiliary_distribution = np.abs(np.random.normal(0, 1, (size, 4)))
+boosted_auxiliary_distribution = muGAN.generate_aux_tuned(size) # Start with tuned auxiliary distributions
 boosted_auxiliary_distribution[:,2] *= 2
 boosted_muon_kinematic_vectors = muGAN.generate_custom_aux(boosted_auxiliary_distribution)
 ```

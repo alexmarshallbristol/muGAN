@@ -101,17 +101,106 @@ class muGAN:
 		return self.min_max_plot, self.cmp_root, self.axis_titles
 
 
+	def generate_aux_tuned(self, size):
+		''' Generate tuned auxiliary distribution, will parameterise later. '''
+
+		xy_aux = np.abs(np.random.gumbel(loc=0.1,scale=0.8,size=(size)))
+
+		####################
+
+		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		fraction_gumbel = 1E-2
+		floor = int(np.floor(size*fraction_gumbel))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			if number > 0:
+				z_aux[-number:] = np.abs(np.random.gumbel(loc=0,scale=1,size=(np.shape(z_aux[-number:]))))
+				z_aux = np.take(z_aux,np.random.permutation(z_aux.shape[0]),axis=0,out=z_aux)
+
+		fraction_low_to_redistribute = 0.27
+
+		floor = int(np.floor(size*fraction_low_to_redistribute))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			list_for_np_choice = np.arange(0, np.shape(z_aux)[0])
+			redistribute = np.random.choice(list_for_np_choice, p=(1/(z_aux))/np.sum(1/(z_aux)), size=number, replace=False)
+			if number > 0:
+				z_aux_non_delete = np.delete(z_aux, redistribute, axis=0)
+				list_for_np_choice = np.arange(0, np.shape(z_aux_non_delete)[0])
+				z_aux[redistribute] = z_aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(z_aux[redistribute])[0], replace=False)]
+		####################
 
 
-	def generate(self, size):
+		pxpy_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		fraction_gumbel = 1E-2
+		floor = int(np.floor(size*fraction_gumbel))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			if number > 0:
+				pxpy_aux[-number:] = np.abs(np.random.gumbel(loc=0,scale=1,size=(np.shape(pxpy_aux[-number:]))))
+				pxpy_aux = np.take(pxpy_aux,np.random.permutation(pxpy_aux.shape[0]),axis=0,out=pxpy_aux)
+
+
+		fraction_low_to_redistribute = 0.12
+
+		floor = int(np.floor(size*fraction_low_to_redistribute))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			list_for_np_choice = np.arange(0, np.shape(pxpy_aux)[0])
+			redistribute = np.random.choice(list_for_np_choice, p=(1/(pxpy_aux))/np.sum(1/(pxpy_aux)), size=number, replace=False)
+			if number > 0:
+				z_aux_non_delete = np.delete(pxpy_aux, redistribute, axis=0)
+				list_for_np_choice = np.arange(0, np.shape(z_aux_non_delete)[0])
+				pxpy_aux[redistribute] = z_aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(pxpy_aux[redistribute])[0], replace=False)]
+
+
+		####################
+
+		pz_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		fraction_wider = 0.005
+		floor = int(np.floor(size*fraction_wider))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			if number > 0:
+				pz_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.3,size=(np.shape(pz_aux[-number:]))))
+				pz_aux = np.take(pz_aux,np.random.permutation(pz_aux.shape[0]),axis=0,out=pz_aux)
+
+		fraction_low_to_redistribute = 0.2
+
+		floor = int(np.floor(size*fraction_low_to_redistribute))
+		if floor > 0:
+			number = np.random.poisson(lam=floor)
+			list_for_np_choice = np.arange(0, np.shape(pz_aux)[0])
+			redistribute = np.random.choice(list_for_np_choice, p=(1/(pz_aux))/np.sum(1/(pz_aux)), size=number, replace=False)
+			if number > 0:
+				z_aux_non_delete = np.delete(pz_aux, redistribute, axis=0)
+				list_for_np_choice = np.arange(0, np.shape(z_aux_non_delete)[0])
+				pz_aux[redistribute] = z_aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(pz_aux[redistribute])[0], replace=False)]
+
+		####################
+
+		length = np.amin([np.shape(z_aux)[0], np.shape(xy_aux)[0], np.shape(pxpy_aux)[0], np.shape(pz_aux)[0]])
+
+		tuned_aux = np.swapaxes([xy_aux[:length], z_aux[:length], pxpy_aux[:length], pz_aux[:length]],0,1)
+
+		return tuned_aux
+
+
+
+
+
+	def generate(self, size, tuned_aux = True):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 
 		if size > 50000:
-			images = self.generate_large(size)	
+			images = self.generate_large(size, tuned_aux)	
 		else:
 			generator = self.load_generator()
 
-			aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
+			if tuned_aux == False:
+				aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
+			elif tuned_aux == True:
+				aux_gan = self.generate_aux_tuned(int(size))
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 			gen_noise = np.random.normal(0, 1, (int(size), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
@@ -129,7 +218,7 @@ class muGAN:
 		return images
 
 
-	def generate_large(self, size):
+	def generate_large(self, size, tuned_aux = True):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 		generator = self.load_generator()
 
@@ -149,7 +238,10 @@ class muGAN:
 
 			print('Generated',np.shape(images_total)[0],'muons so far...')
 
-			aux_gan = np.abs(np.random.normal(0, 1, (int(size_i), 4)))
+			if tuned_aux == False:
+				aux_gan = np.abs(np.random.normal(0, 1, (int(size_i), 4)))
+			elif tuned_aux == True:
+				aux_gan = self.generate_aux_tuned(int(size_i))
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size_i,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 			gen_noise = np.random.normal(0, 1, (int(size_i), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
@@ -159,7 +251,10 @@ class muGAN:
 			images_total = np.append(images_total, images, axis=0)
 
 		if leftovers > 0:
-			aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
+			if tuned_aux == False:
+				aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
+			elif tuned_aux == True:
+				aux_gan = self.generate_aux_tuned(int(leftovers))
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 			gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))

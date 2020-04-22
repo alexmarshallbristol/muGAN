@@ -29,7 +29,7 @@ muGAN = muGAN()
 
 ########################################################################################################################################################
 ''' Generate muon vectors with normally distributed auxiliary distributions... '''
-muon_kinematic_vectors = muGAN.generate(size=10000)
+muon_kinematic_vectors = muGAN.generate(size=10000, tuned_aux=True)
 ''' The columns are as follows: Pdg, StartX, StartY, StartZ, Px, Py, Pz. '''
 ''' These vectors can be converted to ROOT files and run in FairShip. '''
 ''' This may be all that is needed for some applications. '''
@@ -40,7 +40,6 @@ muon_kinematic_vectors = muGAN.generate(size=10000)
 ''' Plot kinematics of this generated vector'''
 muGAN.plot_kinematics(data=muon_kinematic_vectors)
 ########################################################################################################################################################
-
 
 
 ########################################################################################################################################################
@@ -66,7 +65,7 @@ muGAN.plot_kinematics(data=muon_kinematic_vectors_enchanced, bins=25, log=False,
 ''' Can widen the distribution on demand in whichever direction required. '''
 ''' This example asks for muons with higher P_t. '''
 size = 10000
-boosted_auxiliary_distribution = np.abs(np.random.normal(0, 1, (size, 4)))
+boosted_auxiliary_distribution = muGAN.generate_aux_tuned(size)
 boosted_auxiliary_distribution[:,2] *= 2
 boosted_muon_kinematic_vectors = muGAN.generate_custom_aux(boosted_auxiliary_distribution)
 ''' Plotting results... '''
