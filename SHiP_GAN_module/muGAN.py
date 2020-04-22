@@ -109,7 +109,7 @@ class muGAN:
 		####################
 
 		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
-		fraction_gumbel = 3E-4
+		fraction_gumbel = 1E-3
 		floor = int(np.floor(size*fraction_gumbel))
 		if floor > 0:
 			number = np.random.poisson(lam=floor)
@@ -156,7 +156,7 @@ class muGAN:
 
 		####################
 
-		pz_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
 		fraction_wider = 0.003
 		floor = int(np.floor(size*fraction_wider))
 		if floor > 0:
