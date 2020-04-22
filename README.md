@@ -34,7 +34,7 @@ The library also has a plotting function:
 muGAN.plot_kinematics(data=muon_kinematic_vectors)
 ```
 
-An example of the results obtained with this procedure are presented in [Generated_kinematics.png](Generated_kinematics.png).
+An example of the results obtained with this procedure are presented in [Generated_kinematics.png](Example_plots/Generated_kinematics.png).
 
 
 ### Boosted generation...
@@ -51,7 +51,7 @@ Then to plot the results:
 muGAN.plot_kinematics(data=boosted_muon_kinematic_vectors, filename='Generated_kinematics_BOOSTED_PT.png')
 ```
 
-An example of the boosted distributions obtained with this procedure are presented in [Generated_kinematics_BOOSTED_PT.png](Generated_kinematics_BOOSTED_PT.png).
+An example of the boosted distributions obtained with this procedure are presented in [Generated_kinematics_BOOSTED_PT.png](Example_plots/Generated_kinematics_BOOSTED_PT.png).
 
 
 
@@ -67,6 +67,6 @@ Then to plot the results, showing off some additional features of the plotting f
 muGAN.plot_kinematics(data=muon_kinematic_vectors_enchanced, bins=25, log=False, filename='Generated_kinematics_ENHANCED.png', normalize_colormaps=False)
 ```
 
-An example of the results obtained with this procedure are presented in [Generated_kinematics_ENHANCED.png](Generated_kinematics_ENHANCED.png).
+An example of the results obtained with this procedure are presented in [Generated_kinematics_ENHANCED.png](Example_plots/Generated_kinematics_ENHANCED.png).
 
 
