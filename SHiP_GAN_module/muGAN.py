@@ -158,14 +158,15 @@ class muGAN:
 
 			images_total = np.append(images_total, images, axis=0)
 
-		aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
-		charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
-		gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
-		images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+		if leftovers > 0:
+			aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
 
-		images = self.post_process(images)
+			images = self.post_process(images)
 
-		images_total = np.append(images_total, images, axis=0)
+			images_total = np.append(images_total, images, axis=0)
 
 		print('Generated',np.shape(images_total)[0],'muons.')
 		print('Generated vector column names:')
