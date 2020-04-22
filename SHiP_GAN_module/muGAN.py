@@ -105,24 +105,74 @@ class muGAN:
 
 	def generate(self, size):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
+
+		if size > 50000:
+			images = self.generate_large(size)	
+		else:
+			generator = self.load_generator()
+
+			aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			gen_noise = np.random.normal(0, 1, (int(size), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+
+			print(np.amin(images[:,3]))
+
+			images = self.post_process(images)
+
+			print(np.amin(images[:,3]))
+
+			print('Generated vector column names:')
+			print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' ')
+
+		return images
+
+
+	def generate_large(self, size):
+		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 		generator = self.load_generator()
 
-		aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
-		charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
-		gen_noise = np.random.normal(0, 1, (int(size), 100))
-		images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+		images_total = np.empty((0,7))
 
-		print(np.amin(images[:,3]))
+		size_i = 50000 
+
+		print(' ')
+		print(' ')
+		print('Large number to generate, generating in batches of',size_i,'.')
+
+		iterations = int(np.floor(size/size_i))
+
+		leftovers = size - (size_i*iterations)
+
+		for i in range(0, iterations):
+
+			print('Generated',np.shape(images_total)[0],'muons so far...')
+
+			aux_gan = np.abs(np.random.normal(0, 1, (int(size_i), 4)))
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size_i,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			gen_noise = np.random.normal(0, 1, (int(size_i), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+
+			images = self.post_process(images)
+
+			images_total = np.append(images_total, images, axis=0)
+
+		aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
+		charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+		gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
+		images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
 
 		images = self.post_process(images)
 
-		print(np.amin(images[:,3]))
+		images_total = np.append(images_total, images, axis=0)
 
+		print('Generated',np.shape(images_total)[0],'muons.')
 		print('Generated vector column names:')
 		print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
 		print(' ')
 
-		return images
+		return images_total
 
 
 	def generate_custom_aux(self, aux_gan):
