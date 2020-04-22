@@ -5,6 +5,8 @@ experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.044
 
 ## How to use
 
+*To run this code an installation of [Keras](https://keras.io/) is required.*
+
 First step is to import the library and initialise the muGAN class:
 ```
 from SHiP_GAN_module import muGAN
