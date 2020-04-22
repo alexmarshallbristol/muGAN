@@ -109,7 +109,7 @@ class muGAN:
 		####################
 
 		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
-		fraction_gumbel = 1E-2
+		fraction_gumbel = 3E-4
 		floor = int(np.floor(size*fraction_gumbel))
 		if floor > 0:
 			number = np.random.poisson(lam=floor)
@@ -132,7 +132,7 @@ class muGAN:
 
 
 		pxpy_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
-		fraction_gumbel = 1E-2
+		fraction_gumbel = 1E-3
 		floor = int(np.floor(size*fraction_gumbel))
 		if floor > 0:
 			number = np.random.poisson(lam=floor)
@@ -157,7 +157,7 @@ class muGAN:
 		####################
 
 		pz_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
-		fraction_wider = 0.005
+		fraction_wider = 0.003
 		floor = int(np.floor(size*fraction_wider))
 		if floor > 0:
 			number = np.random.poisson(lam=floor)
@@ -205,11 +205,7 @@ class muGAN:
 			gen_noise = np.random.normal(0, 1, (int(size), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
 
-			print(np.amin(images[:,3]))
-
 			images = self.post_process(images)
-
-			print(np.amin(images[:,3]))
 
 			print('Generated vector column names:')
 			print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
@@ -294,7 +290,7 @@ class muGAN:
 			return images
 
 
-	def generate_enhanced(self, size, seed_vectors):
+	def generate_enhanced(self, size, seed_vectors, aux_multiplication_factor=1):
 		''' Generate enhanced distributions based on a seed distribution. '''
 
 		if np.shape(seed_vectors)[1] != 7:
@@ -306,6 +302,8 @@ class muGAN:
 			discriminator = self.load_discriminator()
 
 			aux_values = np.swapaxes(np.squeeze(discriminator.predict(np.expand_dims(seed_vectors,1)))[1:],0,1)
+
+			aux_values = aux_values * aux_multiplication_factor
 
 			generator = self.load_generator()
 
@@ -370,6 +368,36 @@ class muGAN:
 					plt.ylabel(self.axis_titles[j])
 					plt.grid(color='k',linestyle='--',alpha=0.4)
 			plt.subplots_adjust(wspace=0.3, hspace=0.3)
+			plt.tight_layout()
+			plt.savefig(filename)
+			plt.close('all')
+
+
+
+	def plot_p_pt(self, data, filename='Generated_p_pt.png',log=True, bins=100):
+		''' Plot the kinematics of an input vector. The input is assumed to be of columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] in an [n,7] shape. '''
+
+		if np.shape(data)[1] != 7:
+			print('Input a vector of shape [n,7]')
+			quit()
+		else:
+			self.define_plotting_tools()
+
+			print('Plotting kinematics, saving plots to:',filename)
+
+			data = data[:,1:] # Cut off Pdg information for plotting
+
+			mom = np.sqrt(data[:,-1]**2+data[:,-2]**2+data[:,-3]**2)
+			mom_t = np.sqrt(data[:,-2]**2+data[:,-3]**2)
+
+			plt.figure(figsize=(6, 4))
+			if log == True:
+				plt.hist2d(mom, mom_t, bins=bins, norm=LogNorm(), cmap=self.cmp_root, range=[[0,400],[0,7]],vmin=1)
+			else:
+				plt.hist2d(mom, mom_t, bins=bins, cmap=self.cmp_root, range=[[0,400],[0,7]],vmin=1)
+			plt.xlabel('Momentum (GeV)')
+			plt.ylabel('Transverse Momentum (GeV)')
+			plt.grid(color='k',linestyle='--',alpha=0.4)
 			plt.tight_layout()
 			plt.savefig(filename)
 			plt.close('all')

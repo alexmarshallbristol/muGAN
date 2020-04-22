@@ -39,6 +39,8 @@ muon_kinematic_vectors = muGAN.generate(size=10000, tuned_aux=True)
 
 ''' Plot kinematics of this generated vector'''
 muGAN.plot_kinematics(data=muon_kinematic_vectors)
+''' Plot momentum vs transverse momentum'''
+muGAN.plot_p_pt(data=muon_kinematic_vectors)
 ########################################################################################################################################################
 
 
