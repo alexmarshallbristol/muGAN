@@ -5,6 +5,11 @@ experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.044
 
 ## How to use
 
+Clone:
+```
+git clone https://github.com/alexmarshallbristol/muGAN.git
+```
+
 *To run this code an installation of [Keras](https://keras.io/) is required.*
 
 **Python script must be run in same directory as the folder 'SHiP_GAN_module', can improve this if necessary.**
