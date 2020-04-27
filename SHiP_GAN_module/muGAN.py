@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from .Create_Discriminator import create_discriminator
 import os
+import uproot
 
 def _loss_generator(y_true, y_pred):
 	y_pred = K.clip(y_pred, _EPSILON, 1.0-_EPSILON)
@@ -20,7 +21,7 @@ class muGAN:
 	def __init__(self):
 		''' Constructor for this class. '''
 		total_numbers = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/total_numbers.npy')
-		self.Fraction_pos = float(total_numbers[0][0]+total_numbers[0][1])/float(np.sum(total_numbers))	
+		self.Fraction_pos = float(total_numbers[0][0]+total_numbers[0][1])/float(np.sum(total_numbers)) 
 		self.min_max = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/min_max.npy')
 
 	def load_generator(self):
@@ -64,7 +65,7 @@ class muGAN:
 				input_array[x][index] = (((input_array[x][index]+0.97)/1.94)*(self.min_max[index-1][1] - self.min_max[index-1][0])+ self.min_max[index-1][0])
 		for index in [3]:
 			for x in range(0, np.shape(input_array)[0]):
-				input_array[x][index] = (((input_array[x][index]+1)/1.97)*(self.min_max[index-1][1] - self.min_max[index-1][0])+ self.min_max[index-1][0])
+				input_array[x][index] = (((input_array[x][index]+1)/1.97)*(self.min_max[index-1][1] - self.min_max[index-1][0])+ self.min_max[index-1][0]) + 0.42248158 # Small correction to GAN start of target values.
 		for index in range(4, 7):
 			for x in range(0, np.shape(input_array)[0]):
 				input_array[x][index] = (((input_array[x][index]+0.97)/1.94)*(self.min_max[index-1][1] - self.min_max[index-1][0])+ self.min_max[index-1][0])
@@ -210,7 +211,7 @@ class muGAN:
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 
 		if size > 50000:
-			images = self.generate_large(size, tuned_aux)	
+			images = self.generate_large(size, tuned_aux)   
 		else:
 			generator = self.load_generator()
 
@@ -225,7 +226,7 @@ class muGAN:
 			images = self.post_process(images)
 
 			print('Generated vector column names:')
-			print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
 			print(' ')
 
 		return images
@@ -278,7 +279,7 @@ class muGAN:
 
 		print('Generated',np.shape(images_total)[0],'muons.')
 		print('Generated vector column names:')
-		print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+		print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
 		print(' ')
 
 		return images_total
@@ -301,7 +302,7 @@ class muGAN:
 			images = self.post_process(images)
 			print('Custom aux based muon distribution generated.')
 			print('Generated vector column names:')
-			print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
 			print(' ')
 
 			return images
@@ -339,7 +340,7 @@ class muGAN:
 
 			print('Enhanced distribution generated.')
 			print('Generated vector column names:')
-			print('	Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
 			print(' ')
 
 			return images
@@ -421,15 +422,60 @@ class muGAN:
 
 
 
+	def save_to_ROOT(self, data, filename = 'muons.root'):
+		'''  Use uproot to save a generated array to a ROOT file that is compalible with MuonBackGenerator.cxx from FairShip'''
+
+		shape = np.shape(data)[0]
+
+		data[:,3] += 2084.5 # Shift target to 50m. In accordance with primGen.SetTarget(ship_geo.target.z0+50*u.m,0.) in run_simScript.py
+							# The start of target in the GAN training data is -7084.5.
+
+		dtype = '>f4'
+
+		Event_ID = uproot.newbranch(dtype)
+		ID = uproot.newbranch(dtype)
+		Parent_ID = uproot.newbranch(dtype)
+		Pythia_ID = uproot.newbranch(dtype)
+		ECut = uproot.newbranch(dtype)
+		W = uproot.newbranch(dtype)
+		X = uproot.newbranch(dtype)
+		Y = uproot.newbranch(dtype)
+		Z = uproot.newbranch(dtype)
+		PX = uproot.newbranch(dtype)
+		PY = uproot.newbranch(dtype)
+		PZ = uproot.newbranch(dtype)
+		Release_Time = uproot.newbranch(dtype)
+		Mother_ID = uproot.newbranch(dtype)
+		Process_ID = uproot.newbranch(dtype)
+
+		branchdict = {"event_id": Event_ID, "id": ID, "parentid": Parent_ID, "pythiaid": Pythia_ID, "ecut": ECut , "w": W,
+		 "x": X, "y": Y, "z": Z, "px": PX, "py": PY, "pz": PZ, "release_time": Release_Time, "mother_id": Mother_ID, "process_id": Process_ID}
+
+		tree = uproot.newtree(branchdict, title="pythia8-Geant4")
+
+		with uproot.recreate("example.root") as f:
+
+			f["pythia8-Geant4"] = tree
+
+			f["pythia8-Geant4"].extend({"event_id": np.ones(shape).astype(np.float64), "id": np.array(np.ones(shape)*13).astype(np.float64), "parentid": np.zeros(shape).astype(np.float64),
+				"pythiaid": data[:,0].astype(np.float64), "ecut": np.array(np.ones(shape)*0.00001).astype(np.float64), "w": np.ones(shape).astype(np.float64), "x": np.array(data[:,1]*0.01).astype(np.float64),
+				"y": np.array(data[:,2]*0.01).astype(np.float64), "z": np.array(data[:,3]*0.01).astype(np.float64), "px": data[:,4].astype(np.float64), "py": data[:,5].astype(np.float64),
+				"pz": data[:,6].astype(np.float64), "release_time": np.zeros(shape).astype(np.float64), "mother_id": np.array(np.ones(shape)*99).astype(np.float64), "process_id": np.array(np.ones(shape)*99).astype(np.float64)})
+			# Not clear if all the datatype formatting is needed. Can be fiddly with ROOT datatypes. This works so I left it.
 
 
+			# Add buffer event at the end. This will not be read into simulation.
+			f["pythia8-Geant4"].extend({"event_id": [0], "id": [0], "parentid": [0],
+				"pythiaid": [0], "ecut": [0], "w": [0], "x": [0],
+				"y": [0], "z": [0], "px": [0], "py": [0],
+				"pz": [0], "release_time": [0], "mother_id": [0], "process_id": [0]})
 
-
-
-
-
-
-
+		print(' ')
+		print(' ')
+		print('Saved',shape,'muons to',filename,'.')
+		print('run_simScript.py must be run with the option: -n',shape,'(or lower)')
+		print(' ')
+		print(' ')
 
 
 

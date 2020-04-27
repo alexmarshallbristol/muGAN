@@ -3,6 +3,22 @@
 Implementation of the SHiP muon background Generative Adversarial Network (GAN). The networks are based on those in the SHiP paper [Fast simulation of muons produced at the SHiP
 experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.04451).
 
+The Z values are calibrated to these lines being present in run_simScript.py
+```
+if fileType == 'tree':
+ # 2018 background production 
+  primGen.SetTarget(ship_geo.target.z0+70.1225*u.m,0.)
+ else:
+  primGen.SetTarget(ship_geo.target.z0+50*u.m,0.)
+  -7084.5
+```
+
+
+Unfortunately the mast MuonBackGenerator.cxx is struggles if -n is not specified or if -n is larger than the number of muons in the file. A buffer event is added to the end of the ROOT file generated. 
+```
+python $FAIRSHIP/macro/run_simScript.py --muShieldDesign 8 -f example.root --stepMuonShield --MuonBack --FastMuon -n 10 -g /eos/experiment/ship/data/magnet_geofiles/magnet_geo_to_test_oliver.root
+```
+
 ## How to use
 
 Clone:
@@ -10,7 +26,7 @@ Clone:
 git clone https://github.com/alexmarshallbristol/muGAN.git
 ```
 
-*To run this code an installation of [Keras](https://keras.io/) is required.*
+*To run this code an installation of both [Keras](https://keras.io/) and [uproot](https://github.com/scikit-hep/uproot) are required.*
 
 **Python script must be run in same directory as the folder 'SHiP_GAN_module', can improve this if necessary.**
 
