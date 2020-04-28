@@ -1,9 +1,0 @@
-README.md
-SHiP_GAN_module/Create_Discriminator.py
-SHiP_GAN_module/__init__.py
-SHiP_GAN_module/muGAN.py
-SHiP_GAN_module.egg-info/PKG-INFO
-SHiP_GAN_module.egg-info/SOURCES.txt
-SHiP_GAN_module.egg-info/dependency_links.txt
-SHiP_GAN_module.egg-info/requires.txt
-SHiP_GAN_module.egg-info/top_level.txt
