@@ -26,9 +26,10 @@ Clone:
 git clone https://github.com/alexmarshallbristol/muGAN.git
 ```
 
-*To run this code an installation of both [Keras](https://keras.io/) and [uproot](https://github.com/scikit-hep/uproot) are required.*
+*To run this code an installation of both [Keras](https://keras.io/) and [uproot](https://github.com/scikit-hep/uproot) are required.* (installed automatically with the package)
 
-**Python script must be run in same directory as the folder 'SHiP_GAN_module', can improve this if necessary.**
+`cd muGAN` and the run `pip install -e . `. Depending on the version you are using, you might need to run `pip3`. 
+
 
 First step is to import the library and initialise the muGAN class:
 ```
