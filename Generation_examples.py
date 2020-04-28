@@ -53,10 +53,10 @@ muGAN.plot_p_pt(data=muon_kinematic_vectors)
 muon_kinematic_vectors_enhanced_example = muon_kinematic_vectors[np.where(np.add(muon_kinematic_vectors[:,4]**2,muon_kinematic_vectors[:,5]**2)>1.5)]
 
 ''' Generate based on a seed distribution. '''
-muon_kinematic_vectors_enchanced = muGAN.generate_enhanced(size=1000, seed_vectors=muon_kinematic_vectors_enhanced_example)
+muon_kinematic_vectors_enchanced = muGAN.generate_enhanced_from_seed_kinematics(size=1000, seed_vectors=muon_kinematic_vectors_enhanced_example)
 
 ''' Another example of plotting kinematics of a generated vector with some other options. '''
-muGAN.plot_kinematics(data=muon_kinematic_vectors_enchanced, bins=25, log=False, filename='Generated_kinematics_ENHANCED.png', normalize_colormaps=False)
+muGAN.plot_kinematics(data=muon_kinematic_vectors_enchanced, bins=25, log=False, filename='Generated_kinematics_from_seed_kinematics.png', normalize_colormaps=False)
 ########################################################################################################################################################
 
 
@@ -71,7 +71,7 @@ boosted_auxiliary_distribution = muGAN.generate_aux_tuned(size)
 boosted_auxiliary_distribution[:,2] *= 2
 boosted_muon_kinematic_vectors = muGAN.generate_custom_aux(boosted_auxiliary_distribution)
 ''' Plotting results... '''
-muGAN.plot_kinematics(data=boosted_muon_kinematic_vectors, filename='Generated_kinematics_BOOSTED_PT.png')
+muGAN.plot_kinematics(data=boosted_muon_kinematic_vectors, filename='Generated_kinematics_custom_aux.png')
 ########################################################################################################################################################
 
 

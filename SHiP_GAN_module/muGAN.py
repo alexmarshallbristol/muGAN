@@ -285,21 +285,30 @@ class muGAN:
 		return images_total
 
 
-	def generate_custom_aux(self, aux_gan):
+	def generate_custom_aux(self, auxiliary_distributions, size=-1):
 		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
+		aux_gan = auxiliary_distributions
 		if np.shape(aux_gan)[1] != 4:
 			print('ERROR: Input auxiliary vectors of shape [n,4] with columns [XY_aux, Z_aux, PT_aux, PZ_aux].')
 			quit()
 		else:
-			generator = self.load_generator()
+			if size == -1:
+				size = int(np.shape(aux_gan)[0])
+			else:
+				aux_gan = np.take(aux_gan,np.random.permutation(aux_gan.shape[0]),axis=0,out=aux_gan)
+				aux_gan = aux_gan[:size]
 
-			size = int(np.shape(aux_gan)[0])
 
-			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
-			gen_noise = np.random.normal(0, 1, (int(size), 100))
-			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+			if size > 50000:
+				images = self.generate_custom_aux_large(size, aux_gan)
+			else:
+				generator = self.load_generator()
 
-			images = self.post_process(images)
+				charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+				gen_noise = np.random.normal(0, 1, (int(size), 100))
+				images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+
+				images = self.post_process(images)
 			print('Custom aux based muon distribution generated.')
 			print('Generated vector column names:')
 			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
@@ -308,7 +317,69 @@ class muGAN:
 			return images
 
 
-	def generate_enhanced(self, size, seed_vectors, aux_multiplication_factor=1):
+	def generate_custom_aux_large(self, size, aux_gan):
+		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
+		generator = self.load_generator()
+
+		images_total = np.empty((0,7))
+
+		size_i = 50000 
+
+		print(' ')
+		print(' ')
+		print('Large number to generate, generating in batches of',size_i,'.')
+
+		iterations = int(np.floor(size/size_i))
+
+		leftovers = size - (size_i*iterations)
+
+		indexes = [0, size_i]
+
+		for i in range(0, iterations):
+
+			print('Generated',np.shape(images_total)[0],'muons so far...')
+
+			aux_gan_i = aux_gan[indexes[0]:indexes[1]]
+
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size_i,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			gen_noise = np.random.normal(0, 1, (int(size_i), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan_i,1), charge_gan]))
+
+			images = self.post_process(images)
+
+			images_total = np.append(images_total, images, axis=0)
+
+			indexes[0] += size_i
+			indexes[1] += size_i
+
+		if leftovers > 0:
+			aux_gan_i = aux_gan[-leftovers:]
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan_i,1), charge_gan]))
+
+			images = self.post_process(images)
+
+			images_total = np.append(images_total, images, axis=0)
+
+		print('Generated',np.shape(images_total)[0],'muons.')
+		print('Generated vector column names:')
+		print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+		print(' ')
+
+		return images_total
+
+
+	def generate_enhanced(self, auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy'), size=1):
+		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
+
+		images = self.generate_custom_aux(auxiliary_distributions=auxiliary_distributions, size=size)
+
+		return images
+
+
+
+	def generate_enhanced_from_seed_kinematics(self, size, seed_vectors, aux_multiplication_factor=1):
 		''' Generate enhanced distributions based on a seed distribution. '''
 
 		if np.shape(seed_vectors)[1] != 7:
