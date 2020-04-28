@@ -36,12 +36,12 @@ seed_auxiliary_distributions = np.load('SHiP_GAN_module/data_files/Seed_auxiliar
 	Feel free to play with this distribution.
 '''
 seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
-fraction_to_boost = 0.1
+fraction_to_boost = 0.125
 cut = int(np.shape(seed_auxiliary_distributions)[0]*fraction_to_boost) 
 dist = np.abs(np.random.normal(loc=0,scale=1,size=np.shape(seed_auxiliary_distributions[:cut,2])))
 dist = np.abs(np.random.normal(loc=0,scale=1,size=np.shape(dist)))
 dist += 1
-dist = np.power(dist,0.5)
+dist = np.power(dist,0.6)
 seed_auxiliary_distributions[:cut,2] *= dist
 seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
 ########################################################################################################################################################
