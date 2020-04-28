@@ -3,6 +3,71 @@
 Implementation of the SHiP muon background Generative Adversarial Network (GAN). The networks are based on those in the SHiP paper [Fast simulation of muons produced at the SHiP
 experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.04451).
 
+
+** SLIDES INTRODUCING USE FOR MUON SHIELD OPTIMISATION CAN BE FOUND: [Information_for_Muon_Shield_Optimisation.pdf](Information_for_Muon_Shield_Optimisation.pdf)**
+
+## How to use - Muon Shield Optimisation
+
+Clone:
+```
+git clone https://github.com/alexmarshallbristol/muGAN.git
+```
+
+*To run this code an installation of both [Keras](https://keras.io/) and [uproot](https://github.com/scikit-hep/uproot) are required.* (installed automatically with the package)
+
+`cd muGAN` and the run `pip install -e . `. Depending on the version you are using, you might need to run `pip3`. 
+
+First step to any script is to import the library and initialise the muGAN class:
+```
+from SHiP_GAN_module import muGAN
+
+muGAN = muGAN()
+```
+
+
+### Generation of an enhanced sample...
+
+Basic structure is presented in: [Generation_Muon_Shield_Optimisation.py](Generation_Muon_Shield_Optimisation.py).
+
+Load example seed auxiliary distributions:
+```
+seed_auxiliary_distributions = np.load('SHiP_GAN_module/data_files/Seed_auxiliary_values_for_enhanced_generation.npy')
+```
+
+Boost these auxiliary values in the P_t direction:
+```
+seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
+fraction_to_boost = 0.1
+cut = int(np.shape(seed_auxiliary_distributions)[0]*fraction_to_boost) 
+dist = np.abs(np.random.normal(loc=0,scale=1,size=np.shape(seed_auxiliary_distributions[:cut,2])))
+dist = np.abs(np.random.normal(loc=0,scale=1,size=np.shape(dist)))
+dist += 1
+dist = np.power(dist,0.5)
+seed_auxiliary_distributions[:cut,2] *= dist
+seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
+
+```
+
+Generate from the GAN:
+```
+boosted_muon_kinematic_vectors = muGAN.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=int(1000))
+```
+
+Plot the output:
+```
+muGAN.plot_kinematics(data=boosted_muon_kinematic_vectors, filename='MSO_output/MSO_kinematics.png', normalize_colormaps=False)
+muGAN.plot_p_pt(data=boosted_muon_kinematic_vectors,filename='MSO_output/MSO_P_PT.png')
+```
+
+Save generated output to a ROOT file:
+```
+muGAN.save_to_ROOT(data=boosted_muon_kinematic_vectors,filename='MSO_output/MSO_muons.root')
+```
+
+
+### More detailed information...
+
+
 The Z values are calibrated to these lines being present in run_simScript.py
 ```
 if fileType == 'tree':

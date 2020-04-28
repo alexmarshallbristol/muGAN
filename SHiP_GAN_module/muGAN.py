@@ -524,7 +524,7 @@ class muGAN:
 
 		tree = uproot.newtree(branchdict, title="pythia8-Geant4")
 
-		with uproot.recreate("example.root") as f:
+		with uproot.recreate(filename) as f:
 
 			f["pythia8-Geant4"] = tree
 

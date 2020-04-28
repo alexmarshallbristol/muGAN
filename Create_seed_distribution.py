@@ -29,8 +29,7 @@ colours_raw_root = [[250,242,108],
 colours_raw_root = np.flip(np.divide(colours_raw_root,256.),axis=0)
 cmp_root = mpl.colors.ListedColormap(colours_raw_root)
 
-files = glob.glob('/Volumes/Mac-Toshiba/PhD/Muon_Shield_Opt_GAN_sample/FILES_FOR_CREATION_OF_ENHANCED/Muon_kinematics*.npy')
-# files = glob.glob('/eos/experiment/ship/user/amarshal/FILES_FOR_CREATION_OF_ENHANCED/Muon_kinematics*.npy')
+files = glob.glob('/eos/experiment/ship/user/amarshal/FILES_FOR_CREATION_OF_ENHANCED/Muon_kinematics*.npy')
 
 '''
 
@@ -98,7 +97,7 @@ for file_id, file in enumerate(files[:25]):
 	
 	print('Saving enhanced aux values...','Shape:',np.shape(Stored_seed_aux_values))
 
-	np.save('Stored_seed_aux_values',Stored_seed_aux_values)
+	np.save('Seed_auxiliary_values_for_enhanced_generation',Stored_seed_aux_values)
 
 
 
