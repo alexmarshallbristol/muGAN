@@ -105,6 +105,9 @@ class muGAN:
 	def generate_aux_tuned(self, size):
 		''' Generate tuned auxiliary distribution, will parameterise later. '''
 
+		print('Needs new tuning - Alex')
+		print('quitting...')
+		quit()
 		xy_aux = np.abs(np.random.gumbel(loc=0.1,scale=0.8,size=(size)))
 
 		####################
@@ -298,7 +301,13 @@ class muGAN:
 				aux_gan = np.take(aux_gan,np.random.permutation(aux_gan.shape[0]),axis=0,out=aux_gan)
 				aux_gan = aux_gan[:size]
 
+			print('Producing enhanced distribution of ',size,'muons, based on',np.shape(aux_gan)[0],'seed muons.')
 
+			# Pick random choices WITH REPLACEMENT from the seed auxiliary distribution
+			# Replication shouldn't matter, or effects will be small, as most of the variation will come in from the gen_noise vector.
+			aux_gan = aux_gan[np.random.choice(np.arange(np.shape(aux_gan)[0]),size=(size),replace=True)]
+
+			
 			if size > 50000:
 				images = self.generate_custom_aux_large(size, aux_gan)
 			else:
