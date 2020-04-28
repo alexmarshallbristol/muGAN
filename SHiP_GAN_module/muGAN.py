@@ -379,9 +379,11 @@ class muGAN:
 		return images_total
 
 
-	def generate_enhanced(self, auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy'), size=1):
+	def generate_enhanced(self, auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy'), size=-1):
 		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
-
+		if size == -1:
+			size = np.shape(auxiliary_distributions)[0]
+			
 		images = self.generate_custom_aux(auxiliary_distributions=auxiliary_distributions, size=size)
 
 		return images
@@ -505,7 +507,7 @@ class muGAN:
 	def save_to_ROOT(self, data, filename = 'muons.root'):
 		'''  Use uproot to save a generated array to a ROOT file that is compalible with MuonBackGenerator.cxx from FairShip'''
 		import uproot
-		
+
 		shape = np.shape(data)[0]
 
 		data[:,3] += 2084.5 # Shift target to 50m. In accordance with primGen.SetTarget(ship_geo.target.z0+50*u.m,0.) in run_simScript.py
