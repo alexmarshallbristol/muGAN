@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from .Create_Discriminator import create_discriminator
 import os
-import uproot
+
 
 def _loss_generator(y_true, y_pred):
 	y_pred = K.clip(y_pred, _EPSILON, 1.0-_EPSILON)
@@ -307,7 +307,7 @@ class muGAN:
 			# Replication shouldn't matter, or effects will be small, as most of the variation will come in from the gen_noise vector.
 			aux_gan = aux_gan[np.random.choice(np.arange(np.shape(aux_gan)[0]),size=(size),replace=True)]
 
-			
+
 			if size > 50000:
 				images = self.generate_custom_aux_large(size, aux_gan)
 			else:
@@ -504,7 +504,8 @@ class muGAN:
 
 	def save_to_ROOT(self, data, filename = 'muons.root'):
 		'''  Use uproot to save a generated array to a ROOT file that is compalible with MuonBackGenerator.cxx from FairShip'''
-
+		import uproot
+		
 		shape = np.shape(data)[0]
 
 		data[:,3] += 2084.5 # Shift target to 50m. In accordance with primGen.SetTarget(ship_geo.target.z0+50*u.m,0.) in run_simScript.py
