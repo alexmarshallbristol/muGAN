@@ -657,7 +657,7 @@ class muGAN:
 		seed_auxiliary_distributions[:cut,2] *= dist
 		seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
 
-		images_enhanced_list = np.empty((number_of_generators,size,6))
+		images_enhanced_list = np.empty((number_of_generators,size_enhanced,6))
 		for index, generator in enumerate(generator_list):
 			images = self.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=size_enhanced)[:,1:]
 			images_enhanced_list[index] = images
