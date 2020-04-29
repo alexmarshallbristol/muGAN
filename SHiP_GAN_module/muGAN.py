@@ -102,126 +102,94 @@ class muGAN:
 		return self.min_max_plot, self.cmp_root, self.axis_titles
 
 
-	def generate_aux_tuned(self, size):
+	def generate_aux_tuned(self, size, distribution_parameters):
 		''' Generate tuned auxiliary distribution, will parameterise later. '''
 
-		print('Needs new tuning - Alex')
-		print('quitting...')
-		quit()
-		xy_aux = np.abs(np.random.gumbel(loc=0.1,scale=0.8,size=(size)))
+		aux_values = np.abs(np.random.normal(loc=0,scale=1,size=(size,4)))
 
-		####################
+		for i in range(0, 4):
 
-		z_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
+			total_covered = 0
 
-		fraction_wider = 0.0005
-		floor = int(np.floor(size*fraction_wider))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			if number > 0:
-				z_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.2,size=(np.shape(z_aux[-number:]))))
-				z_aux = np.take(z_aux,np.random.permutation(z_aux.shape[0]),axis=0,out=z_aux)
+			fraction_gumbel_A = distribution_parameters[i][0]
+			loc_gumbel_A = distribution_parameters[i][1]
+			scale_gumbel_A = distribution_parameters[i][2]
 
-		fraction_gumbel = 1E-3
-		floor = int(np.floor(size*fraction_gumbel))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			if number > 0:
-				z_aux[-number:] = np.abs(np.random.gumbel(loc=0,scale=1,size=(np.shape(z_aux[-number:]))))
-				z_aux = np.take(z_aux,np.random.permutation(z_aux.shape[0]),axis=0,out=z_aux)
+			number_gumble_A = int(np.floor(size*fraction_gumbel_A))
 
-		fraction_low_to_redistribute = 0.27
+			if number_gumble_A > 0:
+				aux_values[:number_gumble_A,i] = np.abs(np.random.gumbel(loc=loc_gumbel_A,scale=scale_gumbel_A,size=(np.shape(aux_values[:number_gumble_A,i]))))
 
-		floor = int(np.floor(size*fraction_low_to_redistribute))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			list_for_np_choice = np.arange(0, np.shape(z_aux)[0])
-			redistribute = np.random.choice(list_for_np_choice, p=(1/(z_aux))/np.sum(1/(z_aux)), size=number, replace=False)
-			if number > 0:
-				z_aux_non_delete = np.delete(z_aux, redistribute, axis=0)
-				list_for_np_choice = np.arange(0, np.shape(z_aux_non_delete)[0])
-				z_aux[redistribute] = z_aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(z_aux[redistribute])[0], replace=False)]
-		####################
+			total_covered += number_gumble_A
 
+			if total_covered < size:
+				fraction_wider = distribution_parameters[i][3]
+				scale_wider = distribution_parameters[i][4]
 
-		pxpy_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
-		fraction_wider = 0.001
-		floor = int(np.floor(size*fraction_wider))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			if number > 0:
-				pxpy_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.2,size=(np.shape(pxpy_aux[-number:]))))
-				pxpy_aux = np.take(pxpy_aux,np.random.permutation(pxpy_aux.shape[0]),axis=0,out=pxpy_aux)
+				number_wider = int(np.floor(size*fraction_wider))
 
-		fraction_gumbel = 1E-3
-		floor = int(np.floor(size*fraction_gumbel))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			if number > 0:
-				pxpy_aux[-number:] = np.abs(np.random.gumbel(loc=0,scale=1,size=(np.shape(pxpy_aux[-number:]))))
-				pxpy_aux = np.take(pxpy_aux,np.random.permutation(pxpy_aux.shape[0]),axis=0,out=pxpy_aux)
+				if number_wider > 0:
+					aux_values[-number_wider:,i] = np.abs(np.random.normal(loc=0,scale=scale_wider,size=np.shape(aux_values[-number_wider:,i])))
+
+					aux_values[number_gumble_A:,i] = np.take(aux_values[number_gumble_A:,i],np.random.permutation(aux_values[number_gumble_A:,i].shape[0]),axis=0,out=aux_values[number_gumble_A:,i])
+				
+
+				fraction_gumbel_B = distribution_parameters[i][5]
+				number_gumble_B = int(np.floor(size*fraction_gumbel_B))
+
+				if number_gumble_B > 0:
+					aux_values[-number_gumble_B:,i] = np.abs(np.random.gumbel(loc=0,scale=1,size=np.shape(aux_values[-number_gumble_B:,i])))
+
+					aux_values[number_gumble_A:,i] = np.take(aux_values[number_gumble_A:,i],np.random.permutation(aux_values[number_gumble_A:,i].shape[0]),axis=0,out=aux_values[number_gumble_A:,i])
 
 
-		fraction_low_to_redistribute = 0.12
+			fraction_low_to_redistribute = distribution_parameters[i][6]
+			number_low_to_redistribute = int(np.floor(size*fraction_low_to_redistribute))
 
-		floor = int(np.floor(size*fraction_low_to_redistribute))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			list_for_np_choice = np.arange(0, np.shape(pxpy_aux)[0])
-			redistribute = np.random.choice(list_for_np_choice, p=(1/(pxpy_aux))/np.sum(1/(pxpy_aux)), size=number, replace=False)
-			if number > 0:
-				z_aux_non_delete = np.delete(pxpy_aux, redistribute, axis=0)
-				list_for_np_choice = np.arange(0, np.shape(z_aux_non_delete)[0])
-				pxpy_aux[redistribute] = z_aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(pxpy_aux[redistribute])[0], replace=False)]
+			if number_low_to_redistribute > 0:
 
+				list_for_np_choice = np.arange(0, np.shape(aux_values[:,i])[0])
 
-		####################
+				redistribute = np.random.choice(list_for_np_choice, p=(1/(aux_values[:,i]))/np.sum(1/(aux_values[:,i])), size=number_low_to_redistribute, replace=False)
 
-		pz_aux = np.abs(np.random.normal(loc=0,scale=1,size=(size)))
-		fraction_wider = 0.003
-		floor = int(np.floor(size*fraction_wider))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			if number > 0:
-				pz_aux[-number:] = np.abs(np.random.normal(loc=0,scale=1.2,size=(np.shape(pz_aux[-number:]))))
-				pz_aux = np.take(pz_aux,np.random.permutation(pz_aux.shape[0]),axis=0,out=pz_aux)
+				aux_non_delete = np.delete(aux_values[:,i], redistribute, axis=0)
+				list_for_np_choice = np.arange(0, np.shape(aux_non_delete)[0])
+				aux_values[:,i][redistribute] = aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(aux_values[:,i][redistribute])[0], replace=False)]
 
-		fraction_low_to_redistribute = 0.2
+			
+			aux_values[:,i] = np.take(aux_values[:,i],np.random.permutation(aux_values[:,i].shape[0]),axis=0,out=aux_values[:,i])
+		
 
-		floor = int(np.floor(size*fraction_low_to_redistribute))
-		if floor > 0:
-			number = np.random.poisson(lam=floor)
-			list_for_np_choice = np.arange(0, np.shape(pz_aux)[0])
-			redistribute = np.random.choice(list_for_np_choice, p=(1/(pz_aux))/np.sum(1/(pz_aux)), size=number, replace=False)
-			if number > 0:
-				z_aux_non_delete = np.delete(pz_aux, redistribute, axis=0)
-				list_for_np_choice = np.arange(0, np.shape(z_aux_non_delete)[0])
-				pz_aux[redistribute] = z_aux_non_delete[np.random.choice(list_for_np_choice, size=np.shape(pz_aux[redistribute])[0], replace=False)]
+		# from scipy.linalg import cholesky
 
-		####################
+		# r = np.array([
+		# 		        [ 1,  0,  0,  0],
+		# 		        [ 0,  1,  0,  0],
+		# 		        [ 0,  0,  1,  0],
+		# 		        [ 0,  0,  0,  1]
+		# 		    ])
+		# c = cholesky(r, lower=True)
 
-		length = np.amin([np.shape(z_aux)[0], np.shape(xy_aux)[0], np.shape(pxpy_aux)[0], np.shape(pz_aux)[0]])
+		# aux_values = np.swapaxes(np.dot(c, np.swapaxes(aux_values,0,1)),0,1)
 
-		tuned_aux = np.swapaxes([xy_aux[:length], z_aux[:length], pxpy_aux[:length], pz_aux[:length]],0,1)
-
-		return tuned_aux
+		return aux_values
 
 
 
 
 
-	def generate(self, size, tuned_aux = False, generator_filename='generator.h5'):
+	def generate(self, size, tuned_aux = True, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 
 		if size > 50000:
-			images = self.generate_large(size, tuned_aux)   
+			images = self.generate_large(size, tuned_aux, generator_filename=generator_filename)   
 		else:
 			generator = self.load_generator(generator_filename=generator_filename)
 
 			if tuned_aux == False:
 				aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
 			elif tuned_aux == True:
-				aux_gan = self.generate_aux_tuned(int(size))
+				aux_gan = self.generate_aux_tuned(int(size), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 			gen_noise = np.random.normal(0, 1, (int(size), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
@@ -235,7 +203,7 @@ class muGAN:
 		return images
 
 
-	def generate_large(self, size, tuned_aux = True, generator_filename='generator.h5'):
+	def generate_large(self, size, tuned_aux, generator_filename):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 		generator = self.load_generator(generator_filename=generator_filename)
 
@@ -258,7 +226,8 @@ class muGAN:
 			if tuned_aux == False:
 				aux_gan = np.abs(np.random.normal(0, 1, (int(size_i), 4)))
 			elif tuned_aux == True:
-				aux_gan = self.generate_aux_tuned(int(size_i))
+				aux_gan = self.generate_aux_tuned(int(size_i), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
+
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size_i,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 			gen_noise = np.random.normal(0, 1, (int(size_i), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
@@ -271,7 +240,7 @@ class muGAN:
 			if tuned_aux == False:
 				aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
 			elif tuned_aux == True:
-				aux_gan = self.generate_aux_tuned(int(leftovers))
+				aux_gan = self.generate_aux_tuned(int(leftovers), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 			gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
@@ -666,6 +635,98 @@ class muGAN:
 			label = generator_list[generator_index][:-3]
 			self.plot_kinematics(data=images_enhanced_list[generator_index], filename='%s/ENH_Correlations_%s.png'%(output_folder,label))
 			self.plot_p_pt(data=images_enhanced_list[generator_index], filename='%s/ENH_P_PT_%s.png'%(output_folder,label))
+
+
+
+
+
+
+
+
+
+
+	def tune(self, size=10000, initial_values=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'), output_folder='Tuning_results', training_data_location='/mnt/storage/scratch/am13743/real_data.npy'):
+		''' Generate tuned auxiliary distribution, will parameterise later. '''
+
+		self.define_plotting_tools()
+
+		X_train = np.load(training_data_location)
+		if size > np.shape(X_train)[0]:
+			print('Qutting... size too big, max size:',np.shape(X_train))
+			quit()
+
+		random_indices = np.random.choice(np.shape(X_train)[0], size=size, replace=False)
+		X_train = X_train[random_indices]
+
+
+		self.plot_kinematics(data=X_train, filename='%s/Correlations_Train.png'%(output_folder))
+		self.plot_p_pt(data=X_train, filename='%s/P_PT_Train.png'%(output_folder))
+
+
+	
+
+		# loop smartly over parameters here.
+		distribution_parameters = initial_values
+
+		label ='initial_values'
+
+		auxiliary_distributions = self.generate_aux_tuned(size, distribution_parameters)
+
+		plt.figure(figsize=(3*4, 2*4))
+		subplot=0
+		for i in range(0, 4):
+			for j in range(i+1, 4):
+				subplot += 1
+				plt.subplot(2,3,subplot)
+				plt.hist2d(auxiliary_distributions[:,i], auxiliary_distributions[:,j], bins=100, norm=LogNorm(), cmap=self.cmp_root, range=[[0,8],[0,8]])
+				plt.grid(color='k',linestyle='--',alpha=0.4)
+		plt.subplots_adjust(wspace=0.3, hspace=0.3)
+		plt.tight_layout()
+		plt.savefig('%s/Aux_values_%s.png'%(output_folder,label))
+		plt.close('all')
+
+
+		images = self.generate_custom_aux(auxiliary_distributions, size=size, generator_filename='generator.h5')[:,1:]
+
+
+
+
+
+		plt.figure(figsize=(3*4, 2*4))
+		subplot=0
+		for i in range(0, 6):
+			subplot += 1
+			plt.subplot(2,3,subplot)
+			plt.hist(X_train[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
+			# label = 'Gen'
+			plt.hist(images[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
+			plt.xlabel(self.axis_titles[i])
+			if self.axis_titles[i] == 'StartZ (cm)': plt.legend(fontsize=8)
+		plt.subplots_adjust(wspace=0.3, hspace=0.3)
+		plt.savefig('%s/Values_%s.png'%(output_folder,label),bbox_inches='tight')
+		plt.close('all')
+
+		plt.figure(figsize=(3*4, 2*4))
+		subplot=0
+		for i in range(0, 6):
+			subplot += 1
+			plt.subplot(2,3,subplot)
+			plt.hist(X_train[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
+			# label = 'Gen'
+			plt.hist(images[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
+			plt.xlabel(self.axis_titles[i])
+			plt.yscale('log')
+			if self.axis_titles[i] == 'StartZ (cm)': plt.legend(fontsize=8)
+		plt.subplots_adjust(wspace=0.3, hspace=0.3)
+		plt.savefig('%s/Values_log_%s.png'%(output_folder,label),bbox_inches='tight')
+		plt.close('all')
+
+
+
+		self.plot_kinematics(data=images, filename='%s/Correlations_%s.png'%(output_folder,label))
+		self.plot_p_pt(data=images, filename='%s/P_PT_%s.png'%(output_folder,label))
+
+
 
 
 
