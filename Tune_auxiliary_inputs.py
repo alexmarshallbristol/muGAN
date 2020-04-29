@@ -40,14 +40,14 @@ initial_values[3] = [ 0, 0, 0, 0.5, 0.8, 0, 0.2] # pz
 # quit()
 
 
-# muGAN.tune(size=int(3E5), initial_values=initial_values, 
-# 	output_folder='Tuning_results',
-# 	training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy')
-
-
-muGAN.tune(size=int(1E7), initial_values=initial_values, 
+muGAN.tune(size=int(1E5), initial_values=initial_values, 
 	output_folder='Tuning_results',
-	training_data_location='/mnt/storage/scratch/am13743/real_data.npy')
+	training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy')
+
+
+# muGAN.tune(size=int(1E6), initial_values=initial_values, 
+# 	output_folder='Tuning_results',
+# 	training_data_location='/mnt/storage/scratch/am13743/real_data.npy')
 
 
 

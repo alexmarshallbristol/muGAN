@@ -163,26 +163,56 @@ class muGAN:
 
 		# Moulding some correlations in the PT vs P plane:
 
-		from scipy.linalg import cholesky
+		# from scipy.linalg import cholesky
 
-		r = np.array([
-				        [ 1,  0,  0,  0],
-				        [ 0,  1,  0,  0],
-				        [ 0,  0,  1,  0],
-				        [ 0,  0,  0.5,  1]
-				    ])
-		c = cholesky(r, lower=True)
-		aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.9))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.9))],0,1)),0,1)
+		# r = np.array([
+		# 		        [ 1,  0,  0,  0],
+		# 		        [ 0,  1,  0,  0],
+		# 		        [ 0,  0,  1,  -0.1],
+		# 		        [ 0,  0,  -0.1,  1]
+		# 		    ])
+		# c = cholesky(r, lower=True)
 
 
-		r = np.array([
-				        [ 1,  0,  0,  0],
-				        [ 0,  1,  0,  0],
-				        [ 0,  0,  1,  0],
-				        [ 0,  0,  -0.8,  1]
-				    ])
-		c = cholesky(r, lower=True)
-		aux_values[np.where(aux_values[:,3]>2.5)][:int((np.shape(np.where(aux_values[:,3]>2.5))[0]*0.8))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,3]>2.5)][:int((np.shape(np.where(aux_values[:,3]>2.5))[0]*0.8))],0,1)),0,1)
+
+		# where_array = np.where(aux_values[:,2]>2)
+
+		# shape_i = int(np.shape(where_array)[1]*0.5)
+
+		# where_array = where_array[0][:int(shape_i)]
+	
+		# aux_values[where_array] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[where_array],0,1)),0,1)
+
+
+
+		# r = np.array([
+		# 		        [ 1,  0,  0,  0],
+		# 		        [ 0,  1,  0,  0],
+		# 		        [ 0,  0,  1,  -0.1],
+		# 		        [ 0,  0,  -0.1,  1]
+		# 		    ])
+		# c = cholesky(r, lower=True)
+
+		# where_array = np.where(aux_values[:,3]>2)
+
+		# shape_i = int(np.shape(where_array)[1]*0.8)
+
+		# where_array = where_array[0][:int(shape_i)]
+	
+		# aux_values[where_array] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[where_array],0,1)),0,1)
+
+
+		where_array = np.where(aux_values[:,3]>3)
+
+		shape_i = int(np.shape(where_array)[1]*0.8)
+
+		where_array = where_array[0][:int(shape_i)]
+
+
+		# print(aux_values[where_array,2])
+		aux_values[where_array,2] = aux_values[where_array,2]*0.7
+		# print(aux_values[where_array,2])
+
 
 		return aux_values
 
