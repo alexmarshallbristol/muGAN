@@ -172,14 +172,14 @@ class muGAN:
 				        [ 0,  0,  0.5,  1]
 				    ])
 		c = cholesky(r, lower=True)
-		aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.5))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.5))],0,1)),0,1)
+		aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.9))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.9))],0,1)),0,1)
 
 
 		r = np.array([
 				        [ 1,  0,  0,  0],
 				        [ 0,  1,  0,  0],
 				        [ 0,  0,  1,  0],
-				        [ 0,  0,  -0.7,  1]
+				        [ 0,  0,  -0.8,  1]
 				    ])
 		c = cholesky(r, lower=True)
 		aux_values[np.where(aux_values[:,3]>2.5)][:int((np.shape(np.where(aux_values[:,3]>2.5))[0]*0.8))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,3]>2.5)][:int((np.shape(np.where(aux_values[:,3]>2.5))[0]*0.8))],0,1)),0,1)
