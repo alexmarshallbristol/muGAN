@@ -24,11 +24,11 @@ class muGAN:
 		self.Fraction_pos = float(total_numbers[0][0]+total_numbers[0][1])/float(np.sum(total_numbers)) 
 		self.min_max = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/min_max.npy')
 
-	def load_generator(self):
+	def load_generator(self, generator_filename='generator.h5'):
 		''' Load the pre-trained generator model from the module directory. '''
 		print(' ')
-		print('Loading Generator...')
-		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/generator.h5',custom_objects={'_loss_generator':_loss_generator})
+		print('Loading Generator: %s ...'%generator_filename)
+		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/%s'%generator_filename,custom_objects={'_loss_generator':_loss_generator})
 		print('Loaded Generator.')
 		print(' ')
 		return generator
@@ -210,13 +210,13 @@ class muGAN:
 
 
 
-	def generate(self, size, tuned_aux = True):
+	def generate(self, size, tuned_aux = False, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 
 		if size > 50000:
 			images = self.generate_large(size, tuned_aux)   
 		else:
-			generator = self.load_generator()
+			generator = self.load_generator(generator_filename=generator_filename)
 
 			if tuned_aux == False:
 				aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
@@ -235,9 +235,9 @@ class muGAN:
 		return images
 
 
-	def generate_large(self, size, tuned_aux = True):
+	def generate_large(self, size, tuned_aux = True, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
-		generator = self.load_generator()
+		generator = self.load_generator(generator_filename=generator_filename)
 
 		images_total = np.empty((0,7))
 
@@ -288,7 +288,7 @@ class muGAN:
 		return images_total
 
 
-	def generate_custom_aux(self, auxiliary_distributions, size=-1):
+	def generate_custom_aux(self, auxiliary_distributions, size=-1, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
 		aux_gan = auxiliary_distributions
 		if np.shape(aux_gan)[1] != 4:
@@ -311,7 +311,7 @@ class muGAN:
 			if size > 50000:
 				images = self.generate_custom_aux_large(size, aux_gan)
 			else:
-				generator = self.load_generator()
+				generator = self.load_generator(generator_filename=generator_filename)
 
 				charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
 				gen_noise = np.random.normal(0, 1, (int(size), 100))
@@ -326,9 +326,9 @@ class muGAN:
 			return images
 
 
-	def generate_custom_aux_large(self, size, aux_gan):
+	def generate_custom_aux_large(self, size, aux_gan, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
-		generator = self.load_generator()
+		generator = self.load_generator(generator_filename=generator_filename)
 
 		images_total = np.empty((0,7))
 
@@ -379,7 +379,7 @@ class muGAN:
 		return images_total
 
 
-	def generate_enhanced(self, auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy'), size=-1):
+	def generate_enhanced(self, auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy'), size=-1, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
 		if size == -1:
 			size = np.shape(auxiliary_distributions)[0]
@@ -390,7 +390,7 @@ class muGAN:
 
 
 
-	def generate_enhanced_from_seed_kinematics(self, size, seed_vectors, aux_multiplication_factor=1):
+	def generate_enhanced_from_seed_kinematics(self, size, seed_vectors, aux_multiplication_factor=1, generator_filename='generator.h5'):
 		''' Generate enhanced distributions based on a seed distribution. '''
 
 		if np.shape(seed_vectors)[1] != 7:
@@ -405,7 +405,7 @@ class muGAN:
 
 			aux_values = aux_values * aux_multiplication_factor
 
-			generator = self.load_generator()
+			generator = self.load_generator(generator_filename=generator_filename)
 
 			print('Producing enhanced distribution of ',size,'muons, based on',np.shape(aux_values)[0],'seed muons.')
 
@@ -430,15 +430,16 @@ class muGAN:
 	def plot_kinematics(self, data, filename='Generated_kinematics.png',log=True, bins=100, normalize_colormaps=True):
 		''' Plot the kinematics of an input vector. The input is assumed to be of columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] in an [n,7] shape. '''
 
-		if np.shape(data)[1] != 7:
-			print('Input a vector of shape [n,7]')
+		if np.shape(data)[1] not in [6, 7]:
+			print('Input a vector of shape [n,6] or [n,7]')
 			quit()
 		else:
 			self.define_plotting_tools()
 
 			print('Plotting kinematics, saving plots to:',filename)
 
-			data = data[:,1:] # Cut off Pdg information for plotting
+			if np.shape(data)[1] == 7:
+				data = data[:,1:] # Cut off Pdg information for plotting
 
 			if normalize_colormaps == True:
 				max_bin = 0
@@ -477,15 +478,16 @@ class muGAN:
 	def plot_p_pt(self, data, filename='Generated_p_pt.png',log=True, bins=100):
 		''' Plot the kinematics of an input vector. The input is assumed to be of columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] in an [n,7] shape. '''
 
-		if np.shape(data)[1] != 7:
-			print('Input a vector of shape [n,7]')
+		if np.shape(data)[1] not in [6, 7]:
+			print('Input a vector of shape [n,6] or [n,7]')
 			quit()
 		else:
 			self.define_plotting_tools()
 
 			print('Plotting kinematics, saving plots to:',filename)
 
-			data = data[:,1:] # Cut off Pdg information for plotting
+			if np.shape(data)[1] == 7:
+				data = data[:,1:] # Cut off Pdg information for plotting
 
 			mom = np.sqrt(data[:,-1]**2+data[:,-2]**2+data[:,-3]**2)
 			mom_t = np.sqrt(data[:,-2]**2+data[:,-3]**2)
@@ -559,6 +561,116 @@ class muGAN:
 		print('run_simScript.py must be run with the option: -n',shape,'(or lower)')
 		print(' ')
 		print(' ')
+
+	def compare_generators(self, size=10000, size_enhanced=10000, generator_list=['generator.h5'], output_folder='',training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy'):
+		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
+		# auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy')
+		self.define_plotting_tools()
+
+		X_train = np.load(training_data_location)
+		if size > np.shape(X_train)[0]:
+			print('Qutting... size too big, max size:',np.shape(X_train))
+			quit()
+
+		random_indices = np.random.choice(np.shape(X_train)[0], size=size, replace=False)
+		X_train = X_train[random_indices]
+
+		number_of_generators = len(generator_list)
+
+		images_list = np.empty((number_of_generators,size,6))
+		for index, generator in enumerate(generator_list):
+			images = self.generate(size, tuned_aux = False, generator_filename=generator)[:,1:]
+			images_list[index] = images
+
+		
+
+		# Values
+
+		plt.figure(figsize=(3*4, 2*4))
+		subplot=0
+		for i in range(0, 6):
+			subplot += 1
+
+			plt.subplot(2,3,subplot)
+
+			plt.hist(X_train[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
+
+			for generator_index in np.arange(0, number_of_generators):
+
+				label = generator_list[generator_index]
+				plt.hist(images_list[generator_index,:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
+
+			plt.xlabel(self.axis_titles[i])
+			if self.axis_titles[i] == 'StartZ (cm)': plt.legend(fontsize=8)
+
+		plt.subplots_adjust(wspace=0.3, hspace=0.3)
+		plt.savefig('%s/Values.png'%(output_folder),bbox_inches='tight')
+		plt.close('all')
+
+
+
+		# Values log
+
+		plt.figure(figsize=(3*4, 2*4))
+		subplot=0
+		for i in range(0, 6):
+			subplot += 1
+
+			plt.subplot(2,3,subplot)
+
+			plt.hist(X_train[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
+
+			for generator_index in np.arange(0, number_of_generators):
+
+				label = generator_list[generator_index]
+				plt.hist(images_list[generator_index,:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
+
+			plt.yscale('log')
+
+			plt.xlabel(self.axis_titles[i])
+			if self.axis_titles[i] == 'StartZ (cm)': plt.legend(fontsize=8)
+
+		plt.subplots_adjust(wspace=0.3, hspace=0.3)
+		plt.savefig('%s/Values_log.png'%(output_folder),bbox_inches='tight')
+		plt.close('all')
+
+		# Correlations
+
+		self.plot_kinematics(data=X_train, filename='%s/Correlations_Train.png'%output_folder)
+		self.plot_p_pt(data=X_train, filename='%s/P_PT_Train.png'%output_folder)
+		for generator_index, generator in enumerate(generator_list):
+			label = generator_list[generator_index][:-3]
+			self.plot_kinematics(data=images_list[generator_index], filename='%s/Correlations_%s.png'%(output_folder,label))
+			self.plot_p_pt(data=images_list[generator_index], filename='%s/P_PT_%s.png'%(output_folder,label))
+
+
+		# Enhanced distributions
+
+		seed_auxiliary_distributions = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy')
+		seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
+		fraction_to_boost = 0.125
+		cut = int(np.shape(seed_auxiliary_distributions)[0]*fraction_to_boost) 
+		dist = np.abs(np.random.normal(loc=0,scale=1,size=np.shape(seed_auxiliary_distributions[:cut,2])))
+		dist = np.abs(np.random.normal(loc=0,scale=1,size=np.shape(dist)))
+		dist += 1
+		dist = np.power(dist,0.6)
+		seed_auxiliary_distributions[:cut,2] *= dist
+		seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.permutation(seed_auxiliary_distributions.shape[0]),axis=0,out=seed_auxiliary_distributions)
+
+		images_enhanced_list = np.empty((number_of_generators,size,6))
+		for index, generator in enumerate(generator_list):
+			images = self.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=size_enhanced)[:,1:]
+			images_enhanced_list[index] = images
+
+		for generator_index, generator in enumerate(generator_list):
+			label = generator_list[generator_index][:-3]
+			self.plot_kinematics(data=images_enhanced_list[generator_index], filename='%s/ENH_Correlations_%s.png'%(output_folder,label))
+			self.plot_p_pt(data=images_enhanced_list[generator_index], filename='%s/ENH_P_PT_%s.png'%(output_folder,label))
+
+
+
+
+
 
 
 
