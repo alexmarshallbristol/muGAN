@@ -160,18 +160,29 @@ class muGAN:
 			aux_values[:,i] = np.take(aux_values[:,i],np.random.permutation(aux_values[:,i].shape[0]),axis=0,out=aux_values[:,i])
 		
 
+
+		# Moulding some correlations in the PT vs P plane:
+
 		from scipy.linalg import cholesky
 
 		r = np.array([
 				        [ 1,  0,  0,  0],
 				        [ 0,  1,  0,  0],
 				        [ 0,  0,  1,  0],
-				        [ 0,  0,  0.1,  1]
+				        [ 0,  0,  0.5,  1]
 				    ])
 		c = cholesky(r, lower=True)
-
-
 		aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.5))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.5))],0,1)),0,1)
+
+
+		r = np.array([
+				        [ 1,  0,  0,  0],
+				        [ 0,  1,  0,  0],
+				        [ 0,  0,  1,  0],
+				        [ 0,  0,  -0.7,  1]
+				    ])
+		c = cholesky(r, lower=True)
+		aux_values[np.where(aux_values[:,3]>2.5)][:int((np.shape(np.where(aux_values[:,3]>2.5))[0]*0.8))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,3]>2.5)][:int((np.shape(np.where(aux_values[:,3]>2.5))[0]*0.8))],0,1)),0,1)
 
 		return aux_values
 

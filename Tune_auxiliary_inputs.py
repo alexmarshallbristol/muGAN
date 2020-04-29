@@ -32,19 +32,20 @@ initial_values = np.empty((4,7))
 
 initial_values[0] = [ 1, 0.1, 0.8, 0, 0, 0, 0] # x y
 initial_values[1] = [ 0, 0, 0, 0.0005, 1.2, 1E-3, 0.27] # z 
-initial_values[2] = [ 0, 0, 0, 0.005, 1.3, 1E-3, 0.12] # px py
-initial_values[3] = [ 0, 0, 0, 0.003, 1.1, 0, 0.2] # pz
+initial_values[2] = [ 0, 0, 0, 0.01, 1.3, 6E-3, 0.12] # px py
+# initial_values[3] = [ 0, 0, 0, 0.003, 1.1, 0, 0.2] # pz
+initial_values[3] = [ 0, 0, 0, 0.5, 0.8, 0, 0.2] # pz
 
 # np.save('SHiP_GAN_module/data_files/tuned_aux_parameters.npy',initial_values)
 # quit()
 
 
-# muGAN.tune(size=int(1E5), initial_values=initial_values, 
+# muGAN.tune(size=int(3E5), initial_values=initial_values, 
 # 	output_folder='Tuning_results',
 # 	training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy')
 
 
-muGAN.tune(size=int(1E6), initial_values=initial_values, 
+muGAN.tune(size=int(1E7), initial_values=initial_values, 
 	output_folder='Tuning_results',
 	training_data_location='/mnt/storage/scratch/am13743/real_data.npy')
 
