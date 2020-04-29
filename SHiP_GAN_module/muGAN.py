@@ -103,7 +103,7 @@ class muGAN:
 
 
 	def generate_aux_tuned(self, size, distribution_parameters):
-		''' Generate tuned auxiliary distribution, will parameterise later. '''
+		''' Generate tuned auxiliary distribution '''
 
 		aux_values = np.abs(np.random.normal(loc=0,scale=1,size=(size,4)))
 
@@ -209,9 +209,8 @@ class muGAN:
 		where_array = where_array[0][:int(shape_i)]
 
 
-		# print(aux_values[where_array,2])
-		aux_values[where_array,2] = aux_values[where_array,2]*0.7
-		# print(aux_values[where_array,2])
+		aux_values[where_array,2] = aux_values[where_array,2]*0.8
+
 
 
 		return aux_values
@@ -574,8 +573,8 @@ class muGAN:
 		print(' ')
 
 	def compare_generators(self, size=10000, size_enhanced=10000, generator_list=['generator.h5'], output_folder='',training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy'):
-		''' Generate muon kinematic vectors with custom auxiliary values. Function calculates the size variable based on the input aux distribution. '''
-		# auxiliary_distributions=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/Seed_auxiliary_values_for_enhanced_generation.npy')
+		''' Compare multiple generators raw output. '''
+
 		self.define_plotting_tools()
 
 		X_train = np.load(training_data_location)
@@ -682,13 +681,91 @@ class muGAN:
 
 
 
+	def BDT_FoM(self, true_muons, generated_muons, test_size=50000):
+		''' Complete BDT FoM scoring... '''
+
+		if np.shape(true_muons)[0] < test_size*2:
+			print('Not enough points for BDT test')
+			quit()
+		elif np.shape(generated_muons)[0] < test_size*2:
+			print('Not enough points for BDT test')
+			quit()
+		elif np.shape(true_muons)[0] != np.shape(generated_muons)[0]:
+			print('Uneven number of points')
+			quit()
+		elif np.shape(generated_muons)[0] != test_size*2:
+			generated_muons = generated_muons[:int(test_size*2)]
+			true_muons = true_muons[:int(test_size*2)]
+
+		print(np.shape(generated_muons), np.shape(true_muons))
+
+		from sklearn.ensemble import GradientBoostingClassifier
+		from sklearn.metrics import roc_auc_score
+
+		# plt.figure(figsize=(12,4))
+		# range_x = [-0.0002,0.0002]
+		# plt.subplot(1,3,1)
+		# plt.hist(true_muons[:,0], bins=51, range=range_x, histtype='step')
+		# plt.yscale('log')
+		# plt.subplot(1,3,2)
+		# plt.hist(generated_muons[:,0], bins=51, range=range_x, histtype='step')
+		# plt.yscale('log')
+		generated_muons[np.where((np.abs(generated_muons[:,0])<0.0001)&(np.abs(generated_muons[:,1])<0.0001)),0] = 0
+		generated_muons[np.where((np.abs(generated_muons[:,0])<0.0001)&(np.abs(generated_muons[:,1])<0.0001)),1] = 0
+		# plt.subplot(1,3,3)
+		# plt.hist(generated_muons[:,0], bins=51, range=range_x, histtype='step')
+		# plt.yscale('log')
+		# plt.savefig('x')
+		# plt.close('all')
+
+
+		clf = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=4)
+
+		X_train_sample = true_muons
+		images = generated_muons
+		bdt_train_size = test_size
+
+		real_training_data = X_train_sample[:bdt_train_size]
+
+		real_test_data = X_train_sample[bdt_train_size:]
+
+		fake_training_data = np.squeeze(images[:bdt_train_size])
+
+		fake_test_data = np.squeeze(images[bdt_train_size:])
+
+		real_training_labels = np.ones(bdt_train_size)
+
+		fake_training_labels = np.zeros(bdt_train_size)
+
+		total_training_data = np.concatenate((real_training_data, fake_training_data))
+
+		total_training_labels = np.concatenate((real_training_labels, fake_training_labels))
+
+		print('Fitting BDT...')
+		clf.fit(total_training_data, total_training_labels)
+
+		out_real = clf.predict_proba(real_test_data)
+
+		out_fake = clf.predict_proba(fake_test_data)
+
+		plt.hist([out_real[:,1],out_fake[:,1]], bins = 100,label=['real','gen'], histtype='step')
+		plt.xlabel('Output of BDT')
+		plt.legend(loc='upper right')
+		plt.savefig('BDT_distributions.png', bbox_inches='tight')
+		plt.close('all')
+
+		ROC_AUC_SCORE_curr = roc_auc_score(np.append(np.ones(np.shape(out_real[:,1])),np.zeros(np.shape(out_fake[:,1]))),np.append(out_real[:,1],out_fake[:,1]))
+
+		print('ROC FoM score:',ROC_AUC_SCORE_curr)
+
+
 
 
 
 
 
 	def tune(self, size=10000, initial_values=np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'), output_folder='Tuning_results', training_data_location='/mnt/storage/scratch/am13743/real_data.npy'):
-		''' Generate tuned auxiliary distribution, will parameterise later. '''
+		''' Complete analysis of a set of tuning parameters '''
 
 		self.define_plotting_tools()
 
@@ -730,10 +807,6 @@ class muGAN:
 
 		images = self.generate_custom_aux(auxiliary_distributions, size=size, generator_filename='generator.h5')[:,1:]
 
-
-
-
-
 		plt.figure(figsize=(3*4, 2*4))
 		subplot=0
 		for i in range(0, 6):
@@ -767,6 +840,8 @@ class muGAN:
 
 		self.plot_kinematics(data=images, filename='%s/Correlations_%s.png'%(output_folder,label))
 		self.plot_p_pt(data=images, filename='%s/P_PT_%s.png'%(output_folder,label))
+
+		self.BDT_FoM(X_train, images, test_size=50000)
 
 
 
