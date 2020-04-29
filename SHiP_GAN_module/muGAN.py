@@ -160,17 +160,18 @@ class muGAN:
 			aux_values[:,i] = np.take(aux_values[:,i],np.random.permutation(aux_values[:,i].shape[0]),axis=0,out=aux_values[:,i])
 		
 
-		# from scipy.linalg import cholesky
+		from scipy.linalg import cholesky
 
-		# r = np.array([
-		# 		        [ 1,  0,  0,  0],
-		# 		        [ 0,  1,  0,  0],
-		# 		        [ 0,  0,  1,  0],
-		# 		        [ 0,  0,  0,  1]
-		# 		    ])
-		# c = cholesky(r, lower=True)
+		r = np.array([
+				        [ 1,  0,  0,  0],
+				        [ 0,  1,  0,  0],
+				        [ 0,  0,  1,  0],
+				        [ 0,  0,  0.1,  1]
+				    ])
+		c = cholesky(r, lower=True)
 
-		# aux_values = np.swapaxes(np.dot(c, np.swapaxes(aux_values,0,1)),0,1)
+
+		aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.5))] = np.swapaxes(np.dot(c, np.swapaxes(aux_values[np.where(aux_values[:,2]>2)][:int((np.shape(np.where(aux_values[:,2]>2))[0]*0.5))],0,1)),0,1)
 
 		return aux_values
 
