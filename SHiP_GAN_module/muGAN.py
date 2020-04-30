@@ -769,6 +769,12 @@ class muGAN:
 
 		self.define_plotting_tools()
 
+		self.min_max[3][0] = -5.5
+		self.min_max[3][1] = 5.5
+
+		self.min_max[4][0] = -5.5
+		self.min_max[4][1] = 5.5
+
 		X_train = np.load(training_data_location)
 		if size > np.shape(X_train)[0]:
 			print('Qutting... size too big, max size:',np.shape(X_train))
@@ -787,7 +793,7 @@ class muGAN:
 		# loop smartly over parameters here.
 		distribution_parameters = initial_values
 
-		label ='initial_values'
+		label ='Tuned GAN'
 
 		auxiliary_distributions = self.generate_aux_tuned(size, distribution_parameters)
 
@@ -797,7 +803,7 @@ class muGAN:
 			for j in range(i+1, 4):
 				subplot += 1
 				plt.subplot(2,3,subplot)
-				plt.hist2d(auxiliary_distributions[:,i], auxiliary_distributions[:,j], bins=100, norm=LogNorm(), cmap=self.cmp_root, range=[[0,8],[0,8]])
+				plt.hist2d(auxiliary_distributions[:,i], auxiliary_distributions[:,j], bins=101, norm=LogNorm(), cmap=self.cmp_root, range=[[0,8],[0,8]])
 				plt.grid(color='k',linestyle='--',alpha=0.4)
 		plt.subplots_adjust(wspace=0.3, hspace=0.3)
 		plt.tight_layout()
@@ -812,9 +818,9 @@ class muGAN:
 		for i in range(0, 6):
 			subplot += 1
 			plt.subplot(2,3,subplot)
-			plt.hist(X_train[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
+			plt.hist(X_train[:,i], bins=75,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
 			# label = 'Gen'
-			plt.hist(images[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
+			plt.hist(images[:,i], bins=75,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
 			plt.xlabel(self.axis_titles[i])
 			if self.axis_titles[i] == 'StartZ (cm)': plt.legend(fontsize=8)
 		plt.subplots_adjust(wspace=0.3, hspace=0.3)
@@ -826,9 +832,9 @@ class muGAN:
 		for i in range(0, 6):
 			subplot += 1
 			plt.subplot(2,3,subplot)
-			plt.hist(X_train[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
+			plt.hist(X_train[:,i], bins=75,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]], label='Train',histtype='step')
 			# label = 'Gen'
-			plt.hist(images[:,i], bins=51,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
+			plt.hist(images[:,i], bins=75,range=[self.min_max_plot[i][0], self.min_max_plot[i][1]],histtype='step',label=label)
 			plt.xlabel(self.axis_titles[i])
 			plt.yscale('log')
 			if self.axis_titles[i] == 'StartZ (cm)': plt.legend(fontsize=8)
