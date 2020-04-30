@@ -35,7 +35,7 @@ muGAN = muGAN()
 initial_values = np.empty((4,7))
 initial_values[0] = [ 1, 0.1, 0.8, 0, 0, 0, 0] # x y
 initial_values[1] = [ 0, 0, 0, 0.0005, 1.2, 1E-3, 0.27] # z 
-initial_values[2] = [ 0, 0, 0, 0.008, 1.3, 0.00025, 0.12] # px py
+initial_values[2] = [ 0, 0, 0, 0.009, 1.3, 0.0005, 0.12] # px py
 initial_values[3] = [ 0, 0, 0, 0.5, 0.8, 0, 0.2] # pz
 
 
