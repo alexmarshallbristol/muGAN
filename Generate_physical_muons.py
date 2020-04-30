@@ -10,7 +10,7 @@ from SHiP_GAN_module import muGAN
 
 muGAN = muGAN()
 
-for file_id in range(0, 100):
+for file_id in range(0, int(1E30)):
 
 	muon_kinematic_vectors = muGAN.generate(size=int(1E6), tuned_aux=True)
 
@@ -21,6 +21,6 @@ for file_id in range(0, 100):
 	# 	muGAN.plot_p_pt(data=muon_kinematic_vectors, filename='P')
 
 
-	muGAN.save_to_ROOT(data=muon_kinematic_vectors,filename='muons_%d.root'%file_id)
+	muGAN.save_to_ROOT(data=muon_kinematic_vectors,filename='/mnt/storage/scratch/am13743/AUX_GANs_output/muons_%d.root'%file_id)
 
-	quit()
+	# quit()
