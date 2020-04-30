@@ -98,6 +98,10 @@ class muGAN:
 		cmp_root.set_under('w')
 		self.cmp_root = cmp_root
 		self.min_max_plot = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/min_max_plot.npy')
+		self.min_max_plot[3][0] = -5.5
+		self.min_max_plot[3][1] = 5.5
+		self.min_max_plot[4][0] = -5.5
+		self.min_max_plot[4][1] = 5.5
 		self.axis_titles = ['StartX (cm)', 'StartY (cm)', 'StartZ (cm)', 'Px (GeV)', 'Py (GeV)', 'Pz (GeV)']
 		return self.min_max_plot, self.cmp_root, self.axis_titles
 
@@ -209,7 +213,7 @@ class muGAN:
 		where_array = where_array[0][:int(shape_i)]
 
 
-		aux_values[where_array,2] = aux_values[where_array,2]*0.8
+		aux_values[where_array,2] = aux_values[where_array,2]*0.75
 
 
 
@@ -768,12 +772,6 @@ class muGAN:
 		''' Complete analysis of a set of tuning parameters '''
 
 		self.define_plotting_tools()
-
-		self.min_max_plot[3][0] = -5.5
-		self.min_max_plot[3][1] = 5.5
-
-		self.min_max_plot[4][0] = -5.5
-		self.min_max_plot[4][1] = 5.5
 
 		X_train = np.load(training_data_location)
 		if size > np.shape(X_train)[0]:
