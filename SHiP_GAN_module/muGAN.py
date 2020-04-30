@@ -769,11 +769,11 @@ class muGAN:
 
 		self.define_plotting_tools()
 
-		self.min_max[3][0] = -5.5
-		self.min_max[3][1] = 5.5
+		self.min_max_plot[3][0] = -5.5
+		self.min_max_plot[3][1] = 5.5
 
-		self.min_max[4][0] = -5.5
-		self.min_max[4][1] = 5.5
+		self.min_max_plot[4][0] = -5.5
+		self.min_max_plot[4][1] = 5.5
 
 		X_train = np.load(training_data_location)
 		if size > np.shape(X_train)[0]:
@@ -847,7 +847,7 @@ class muGAN:
 		self.plot_kinematics(data=images, filename='%s/Correlations_%s.png'%(output_folder,label))
 		self.plot_p_pt(data=images, filename='%s/P_PT_%s.png'%(output_folder,label))
 
-		self.BDT_FoM(X_train, images, test_size=50000)
+		# self.BDT_FoM(X_train, images, test_size=50000)
 
 
 
