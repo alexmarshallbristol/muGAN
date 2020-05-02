@@ -556,7 +556,7 @@ class muGAN:
 
 			f["pythia8-Geant4"] = tree
 
-			f["pythia8-Geant4"].extend({"event_id": np.ones(shape).astype(np.float64), "id": np.array(np.ones(shape)*13).astype(np.float64), "parentid": np.zeros(shape).astype(np.float64),
+			f["pythia8-Geant4"].extend({"event_id": np.ones(shape).astype(np.float64), "id": data[:,0].astype(np.float64), "parentid": np.zeros(shape).astype(np.float64),
 				"pythiaid": data[:,0].astype(np.float64), "ecut": np.array(np.ones(shape)*0.00001).astype(np.float64), "w": np.ones(shape).astype(np.float64), "x": np.array(data[:,1]*0.01).astype(np.float64),
 				"y": np.array(data[:,2]*0.01).astype(np.float64), "z": np.array(data[:,3]*0.01).astype(np.float64), "px": data[:,4].astype(np.float64), "py": data[:,5].astype(np.float64),
 				"pz": data[:,6].astype(np.float64), "release_time": np.zeros(shape).astype(np.float64), "mother_id": np.array(np.ones(shape)*99).astype(np.float64), "process_id": np.array(np.ones(shape)*99).astype(np.float64)})
