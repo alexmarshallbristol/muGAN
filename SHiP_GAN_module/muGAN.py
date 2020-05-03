@@ -51,8 +51,8 @@ class muGAN:
 
 	def post_process(self, input_array):
 		''' Post process generated vectors into physical values. '''
-		input_array[np.where(input_array[:,0]==-1),0] = -13
-		input_array[np.where(input_array[:,0]!=-1),0] = 13
+		input_array[np.where(input_array[:,0]<0),0] = -13
+		input_array[np.where(input_array[:,0]>0),0] = 13
 		for index in range(1, 3):
 			for x in range(0, np.shape(input_array)[0]):
 				input_array[x][index] = (((input_array[x][index]+1)/2)*(1 - (-1))+ (-1))
@@ -236,9 +236,10 @@ class muGAN:
 			elif tuned_aux == True:
 				aux_gan = self.generate_aux_tuned(int(size), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
 			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			# print('ch',charge_gan)
 			gen_noise = np.random.normal(0, 1, (int(size), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
-
+			print('im',images[:,0])
 			images = self.post_process(images)
 
 			print('Generated vector column names:')
