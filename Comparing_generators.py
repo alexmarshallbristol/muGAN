@@ -24,7 +24,12 @@ from SHiP_GAN_module import muGAN
 muGAN = muGAN()
 ########################################################################################################################################################
 
-muGAN.compare_generators(size=int(1E3), size_enhanced = int(1E3),
-	generator_list=['generator.h5','generator_new.h5','generator_new2.h5'],
+# muGAN.compare_generators(size=int(1E6), size_enhanced = int(1E5),
+# 	generator_list=['generator.h5','generator_best.h5'],
+# 	output_folder='Compare_generators',
+# 	training_data_location='/mnt/storage/scratch/am13743/real_data.npy')
+
+muGAN.compare_generators(size=int(1E6), size_enhanced = int(1E5),
+	generator_list=['generator.h5','generator_best.h5'],
 	output_folder='Compare_generators',
-	training_data_location='/mnt/storage/scratch/am13743/real_data.npy')
+	training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy')

@@ -20,7 +20,6 @@ for file_id in range(0, int(1E30)):
 
 	# 	muGAN.plot_p_pt(data=muon_kinematic_vectors, filename='P')
 
+	random_id = np.random.randint(10000000, high=99999999)
 
-	muGAN.save_to_ROOT(data=muon_kinematic_vectors,filename='/mnt/storage/scratch/am13743/AUX_GANs_output/muons_%d.root'%file_id)
-
-	# quit()
+	muGAN.save_to_ROOT(data=muon_kinematic_vectors,filename='/mnt/storage/scratch/am13743/AUX_GANs_output/muons_%d.root'%random_id)

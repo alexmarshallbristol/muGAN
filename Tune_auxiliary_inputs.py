@@ -36,7 +36,7 @@ muGAN = muGAN()
 # np.save('SHiP_GAN_module/data_files/tuned_aux_parameters.npy',initial_values)
 
 
-# muGAN.tune(size=int(1E5), initial_values=initial_values,
+# muGAN.tune(size=int(1E6),
 # 	output_folder='Tuning_results',
 # 	training_data_location='/Users/am13743/Desktop/Data_for_GAN_paper_plots/real_data.npy')
 
