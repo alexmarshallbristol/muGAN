@@ -3,12 +3,13 @@ from keras.models import load_model
 from keras import backend as K
 _EPSILON = K.epsilon() # 10^-7 by default. Epsilon is used as a small constant to avoid ever dividing by zero. 
 import matplotlib as mpl
-mpl.use('TkAgg') 
-mpl.use('Agg')
+import os
+if os.environ.get("DISPLAY", None) is not None:
+	mpl.use('TkAgg') 
+	mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from .Create_Discriminator import create_discriminator
-import os
 
 
 def _loss_generator(y_true, y_pred):
