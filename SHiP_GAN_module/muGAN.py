@@ -1,5 +1,22 @@
 import numpy as np
+
+import tensorflow as tf
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+
+    except RuntimeError as e:
+        print(e)
+
+
 from keras.models import load_model
+from keras import backend as K
+from keras.layers import Input, Flatten, Dense, Reshape, Dropout, BatchNormalization, Concatenate, Lambda
+from keras.layers.advanced_activations import LeakyReLU
+from keras.optimizers import Adam
+from keras.models import load_model, Model
 from keras import backend as K
 _EPSILON = K.epsilon() # 10^-7 by default. Epsilon is used as a small constant to avoid ever dividing by zero. 
 import matplotlib as mpl
@@ -28,7 +45,7 @@ class muGAN:
 		''' Load the pre-trained generator model from the module directory. '''
 		print(' ')
 		print('Loading Generator: %s ...'%generator_filename)
-		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/%s'%generator_filename,custom_objects={'_loss_generator':_loss_generator})
+		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/%s'%generator_filename,custom_objects={'_loss_generator':_loss_generator},compile=False)
 		print('Loaded Generator.')
 		print(' ')
 		return generator
@@ -239,7 +256,7 @@ class muGAN:
 			# print('ch',charge_gan)
 			gen_noise = np.random.normal(0, 1, (int(size), 100))
 			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
-			print('im',images[:,0])
+			# print('im',images[:,0])
 			images = self.post_process(images)
 
 			print('Generated vector column names:')

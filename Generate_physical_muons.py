@@ -6,14 +6,22 @@
 
 import numpy as np
 from SHiP_GAN_module import muGAN
-
+import time
 
 muGAN = muGAN()
 
 for file_id in range(0, int(1E30)):
 
-	muon_kinematic_vectors = muGAN.generate(size=int(1E6), tuned_aux=True)
+	t0 = time.time()
 
+	muon_kinematic_vectors = muGAN.generate(size=int(1E5), tuned_aux=True)
+
+	t1 = time.time()
+
+	total_time = t1-t0
+
+	print(total_time, np.shape(muon_kinematic_vectors))
+	quit()
 	# if file_id == 0:
 
 	# 	muGAN.plot_kinematics(data=muon_kinematic_vectors, filename='K')
