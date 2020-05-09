@@ -1,4 +1,12 @@
 import numpy as np
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+set_session(sess)
+        
 from keras.models import load_model
 from keras import backend as K
 _EPSILON = K.epsilon() # 10^-7 by default. Epsilon is used as a small constant to avoid ever dividing by zero. 
