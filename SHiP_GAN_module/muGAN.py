@@ -6,7 +6,7 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 set_session(sess)
-        
+
 from keras.models import load_model
 from keras import backend as K
 _EPSILON = K.epsilon() # 10^-7 by default. Epsilon is used as a small constant to avoid ever dividing by zero. 
@@ -326,22 +326,28 @@ class muGAN:
 				aux_gan = aux_gan[:size]
 
 			print('Producing enhanced distribution of ',size,'muons, based on',np.shape(aux_gan)[0],'seed muons.')
-
+			# quit()
 			# Pick random choices WITH REPLACEMENT from the seed auxiliary distribution
 			# Replication shouldn't matter, or effects will be small, as most of the variation will come in from the gen_noise vector.
 			aux_gan = aux_gan[np.random.choice(np.arange(np.shape(aux_gan)[0]),size=(size),replace=True)]
 
+			# if size > 50000:
+			# 	images = self.generate_custom_aux_large(size, aux_gan)
+			# else:
+			# 	generator = self.load_generator(generator_filename=generator_filename)
 
-			if size > 50000:
-				images = self.generate_custom_aux_large(size, aux_gan)
-			else:
-				generator = self.load_generator(generator_filename=generator_filename)
+			# 	charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			# 	gen_noise = np.random.normal(0, 1, (int(size), 100))
+			# 	images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
 
-				charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
-				gen_noise = np.random.normal(0, 1, (int(size), 100))
-				images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+			# 	images = self.post_process(images)
 
-				images = self.post_process(images)
+			generator = self.load_generator(generator_filename=generator_filename)
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			gen_noise = np.random.normal(0, 1, (int(size), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan], batch_size=25000))
+			images = self.post_process(images)
+
 			print('Custom aux based muon distribution generated.')
 			print('Generated vector column names:')
 			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
