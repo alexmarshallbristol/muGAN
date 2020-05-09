@@ -29,7 +29,7 @@ class muGAN:
 		''' Load the pre-trained generator model from the module directory. '''
 		print(' ')
 		print('Loading Generator: %s ...'%generator_filename)
-		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/%s'%generator_filename,custom_objects={'_loss_generator':_loss_generator})
+		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/%s'%generator_filename,custom_objects={'_loss_generator':_loss_generator}, compile=False)
 		print('Loaded Generator.')
 		print(' ')
 		return generator
