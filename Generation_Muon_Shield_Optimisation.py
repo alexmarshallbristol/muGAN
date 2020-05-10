@@ -28,6 +28,7 @@ muGAN = muGAN()
 ########################################################################################################################################################
 ''' Load seed auxiliary distribution - file originally created with Create_seed_distribution.py'''
 seed_auxiliary_distributions = np.load('SHiP_GAN_module/data_files/Seed_auxiliary_values_for_enhanced_generation.npy')
+print(np.shape(seed_auxiliary_distributions))
 ########################################################################################################################################################
 '''
 	Although using these seed auxiliary distributions gets us most of the way we havent addressed the GAN underestimating the tails. 
@@ -47,7 +48,7 @@ seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.pe
 ########################################################################################################################################################
 
 ''' Generate from GAN using auxiliary seed values. '''
-boosted_muon_kinematic_vectors = muGAN.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=int(1000))
+boosted_muon_kinematic_vectors = muGAN.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=int(10000))
 
 ''' Plot the output. '''
 muGAN.plot_kinematics(data=boosted_muon_kinematic_vectors, filename='MSO_output/MSO_kinematics.png', normalize_colormaps=False)
