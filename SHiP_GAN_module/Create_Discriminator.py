@@ -1,8 +1,7 @@
-from keras.layers import Input, Flatten, Dense, Reshape, Dropout, BatchNormalization, Concatenate, Lambda
-from keras.layers.advanced_activations import LeakyReLU
-from keras.optimizers import Adam
-from keras.models import load_model, Model
-from keras import backend as K
+from tensorflow.keras.layers import Input, Flatten, Dense, Reshape, Dropout, BatchNormalization, Concatenate, Lambda, LeakyReLU
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model, Model
+from tensorflow.keras import backend as K
 _EPSILON = K.epsilon() # 10^-7 by default. Epsilon is used as a small constant to avoid ever dividing by zero. 
 
 
