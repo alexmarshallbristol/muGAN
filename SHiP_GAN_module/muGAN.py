@@ -1,12 +1,12 @@
 import numpy as np
 import tensorflow as tf
 
-# from keras.backend.tensorflow_backend import set_session
+from keras.backend.tensorflow_backend import set_session
 
-# config = tf.ConfigProto()
-# config.gpu_options.allow_growth = True
-# sess = tf.Session(config=config)
-# set_session(sess)
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+set_session(sess)
 
 from tensorflow.keras.models import load_model
 from tensorflow.keras import backend as K
