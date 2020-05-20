@@ -263,51 +263,68 @@ class muGAN:
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 		generator = self.load_generator(generator_filename=generator_filename)
 
-		images_total = np.empty((0,7))
+		# images_total = np.empty((0,7))
 
-		aux_total = np.empty((0,4))
+		# aux_total = np.empty((0,4))
 
-		size_i = 50000 
+		# size_i = 50000 
 
-		print(' ')
-		print(' ')
-		print('Large number to generate, generating in batches of',size_i,'.')
+		# iterations = int(np.floor(size/size_i))
 
-		iterations = int(np.floor(size/size_i))
+		# leftovers = size - (size_i*iterations)
 
-		leftovers = size - (size_i*iterations)
 
-		for i in range(0, iterations):
 
-			print('Generated',np.shape(images_total)[0],'muons so far...')
 
-			if tuned_aux == False:
-				aux_gan = np.abs(np.random.normal(0, 1, (int(size_i), 4)))
-			elif tuned_aux == True:
-				aux_gan = self.generate_aux_tuned(int(size_i), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
 
-			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size_i,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
-			gen_noise = np.random.normal(0, 1, (int(size_i), 100))
-			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+		if tuned_aux == False:
+			aux_gan = np.abs(np.random.normal(0, 1, (int(size), 4)))
+		elif tuned_aux == True:
+			aux_gan = self.generate_aux_tuned(int(size), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
 
-			images = self.post_process(images)
+		charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+		gen_noise = np.random.normal(0, 1, (int(size), 100))
+		images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan], batch_size=25000))
 
-			images_total = np.append(images_total, images, axis=0)
-			aux_total = np.append(aux_total, aux_gan, axis=0)
+		images = self.post_process(images)
 
-		if leftovers > 0:
-			if tuned_aux == False:
-				aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
-			elif tuned_aux == True:
-				aux_gan = self.generate_aux_tuned(int(leftovers), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
-			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
-			gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
-			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+		images_total = images
+		aux_total = aux_gan
 
-			images = self.post_process(images)
 
-			images_total = np.append(images_total, images, axis=0)
-			aux_total = np.append(aux_total, aux_gan, axis=0)
+
+
+		# for i in range(0, iterations):
+
+		# 	print('Generated',np.shape(images_total)[0],'muons so far...')
+
+		# 	if tuned_aux == False:
+		# 		aux_gan = np.abs(np.random.normal(0, 1, (int(size_i), 4)))
+		# 	elif tuned_aux == True:
+		# 		aux_gan = self.generate_aux_tuned(int(size_i), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
+
+		# 	charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size_i,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+		# 	gen_noise = np.random.normal(0, 1, (int(size_i), 100))
+		# 	images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+
+		# 	images = self.post_process(images)
+
+		# 	images_total = np.append(images_total, images, axis=0)
+		# 	aux_total = np.append(aux_total, aux_gan, axis=0)
+
+		# if leftovers > 0:
+		# 	if tuned_aux == False:
+		# 		aux_gan = np.abs(np.random.normal(0, 1, (int(leftovers), 4)))
+		# 	elif tuned_aux == True:
+		# 		aux_gan = self.generate_aux_tuned(int(leftovers), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
+		# 	charge_gan = np.expand_dims(np.random.choice([-1,1],size=(leftovers,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+		# 	gen_noise = np.random.normal(0, 1, (int(leftovers), 100))
+		# 	images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+
+		# 	images = self.post_process(images)
+
+		# 	images_total = np.append(images_total, images, axis=0)
+		# 	aux_total = np.append(aux_total, aux_gan, axis=0)
 
 		print('Generated',np.shape(images_total)[0],'muons.')
 		print('Generated vector column names:')
