@@ -577,6 +577,101 @@ class muGAN:
 
 			return images_total, aux_values_total
 
+	def generate_enhanced_from_seed_kinematics_EVO_ALGO(self, size, seed_vectors, aux_multiplication_factor=1, generator_filename='generator.h5'):
+		''' Generate enhanced distributions based on a seed distribution. '''
+
+		if np.shape(seed_vectors)[1] != 7:
+			print('ERROR: Input seed_vectors as vector of shape [n,7] with columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] of physical values.')
+			quit()
+		else:
+			seed_vectors = self.pre_process(seed_vectors)
+
+			discriminator = self.load_discriminator()
+
+			aux_values = np.swapaxes(np.squeeze(discriminator.predict(np.expand_dims(seed_vectors,1)))[1:],0,1)
+
+
+			# np.save('/Users/am13743/oliver_seed_dists2.npy', aux_values)
+
+			# aux_values = np.load('/Users/am13743/oliver_seed_dists2.npy')
+
+			aux_values = aux_values * aux_multiplication_factor
+
+			# aux_values = aux_values[:10]
+			# aux_values[:,2] = aux_values[:,2]*1.1
+
+			# aux_values[:,3] = aux_values[:,3]*1.1
+
+			iterations = int(np.floor(size/50000))
+			leftovers = size - iterations*50000
+
+			print(size, iterations, leftovers)
+			generator = self.load_generator(generator_filename=generator_filename)
+
+			print('Producing enhanced distribution of ',size,'muons, based on',np.shape(aux_values)[0],'seed muons.')
+
+			# Pick random choices WITH REPLACEMENT from the seed auxiliary distribution
+			# Replication shouldn't matter, or effects will be small, as most of the variation will come in from the gen_noise vector.
+
+			images_total = np.empty((0,7))
+			aux_values_total = np.empty((0,4))
+
+			while np.shape(images_total)[0]<size:
+
+				print('iter')
+
+				aux_values = aux_values[np.random.choice(np.arange(np.shape(aux_values)[0]),size=(50000),replace=True)]
+
+				aux_values[:,0] = np.abs(np.random.normal(0, 1, np.shape(aux_values[:,0])))
+				aux_values[:,1] = np.abs(np.random.normal(0, 1, np.shape(aux_values[:,1])))
+
+				charge_gan = np.expand_dims(np.random.choice([-1,1],size=(50000,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+				gen_noise = np.random.normal(0, 1, (int(50000), 100))
+
+				images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_values,1), charge_gan], batch_size=100))
+
+				images = self.post_process(images)
+
+				bin_cut_value = 1000000
+
+				print(np.shape(images),'here')
+
+				mom = np.sqrt(images[:,4]**2+images[:,5]**2+images[:,6]**2)
+				mom_t = np.sqrt(images[:,4]**2+images[:,5]**2)
+
+				hist = np.histogram2d(mom, mom_t, bins=50, range=[[0,400],[0,6]])
+
+				where_over = np.where(hist[0]>bin_cut_value)
+
+				digi = [np.digitize(mom, hist[1]), np.digitize(mom_t, hist[2])]
+
+				to_delete = np.empty(0)
+				for bin_i in range(0, np.shape(np.where(hist[0]>bin_cut_value))[1]):
+
+					where_digi = np.where((digi[0]==where_over[0][bin_i]+1)&(digi[1]==where_over[1][bin_i]+1))
+
+					to_delete = np.append(to_delete, where_digi[0][bin_cut_value:])
+
+				images = np.delete(images, to_delete, axis=0)
+				aux_values = np.delete(aux_values, to_delete, axis=0)
+
+				print(np.shape(images),'here')
+
+				images_total = np.concatenate((images_total, images),axis=0)
+				aux_values_total = np.concatenate((aux_values_total, aux_values),axis=0)
+				print(np.shape(images_total))
+
+			images_total = images_total[:size]
+			aux_values_total = aux_values_total[:size]
+
+
+			print('Enhanced distribution generated.')
+			print('Generated vector column names:')
+			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' ')
+
+			return images_total, aux_values_total
+
 	def plot_kinematics(self, data, filename='Generated_kinematics.png',log=True, bins=100, normalize_colormaps=True):
 		''' Plot the kinematics of an input vector. The input is assumed to be of columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] in an [n,7] shape. '''
 

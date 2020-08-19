@@ -56,13 +56,14 @@ seed_auxiliary_distributions = np.take(seed_auxiliary_distributions,np.random.pe
 ########################################################################################################################################################
 
 ''' Generate from GAN using auxiliary seed values. '''
-boosted_muon_kinematic_vectors = muGAN.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=int(5E4))
+boosted_muon_kinematic_vectors = muGAN.generate_enhanced(auxiliary_distributions=seed_auxiliary_distributions, size=int(5E5))
 
 
 ''' Plot the output. '''
 muGAN.plot_kinematics(data=boosted_muon_kinematic_vectors, filename='MSO_output/MSO_kinematics.png', normalize_colormaps=False)
 muGAN.plot_p_pt(data=boosted_muon_kinematic_vectors,filename='MSO_output/MSO_P_PT.png')
 
+quit()
 ''' Save to ROOT file. '''
 muGAN.save_to_ROOT(data=boosted_muon_kinematic_vectors,filename='MSO_output/MSO_muons.root')
 
