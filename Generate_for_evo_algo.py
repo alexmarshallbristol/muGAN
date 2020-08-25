@@ -13,7 +13,7 @@ muGAN = muGAN()
 kinematics_of_muons = muGAN.generate(size=100, tuned_aux=True)[0]
 '''
 	Should be of the form:
-		shape: [n,7], columns: [Pdg (13 or -13), StartX, StartY, StartZ, Px, Py, Pz]
+		shape: [n,7], columns: [Pdg code (13 or -13), StartX, StartY, StartZ, Px, Py, Pz]
 '''
 muGAN.plot_p_pt(data=kinematics_of_muons, filename='kinematics_of_muons.png')
 

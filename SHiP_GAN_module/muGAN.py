@@ -590,7 +590,7 @@ class muGAN:
 
 			aux_values = np.swapaxes(np.squeeze(discriminator.predict(np.expand_dims(seed_vectors,1)))[1:],0,1)
 
-
+			aux_values[:,0] = np.random.normal(0,1,np.shape(aux_values[:,0]))
 			# np.save('/Users/am13743/oliver_seed_dists2.npy', aux_values)
 
 			# aux_values = np.load('/Users/am13743/oliver_seed_dists2.npy')
