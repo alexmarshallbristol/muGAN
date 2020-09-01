@@ -17,6 +17,7 @@ if os.environ.get("DISPLAY", None) is not None:
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from .Create_Discriminator import create_discriminator
+from .Create_Discriminator_SMEAR import create_discriminator_SMEAR
 
 
 def _loss_generator(y_true, y_pred):
@@ -31,6 +32,13 @@ class muGAN:
 		total_numbers = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/total_numbers.npy')
 		self.Fraction_pos = float(total_numbers[0][0]+total_numbers[0][1])/float(np.sum(total_numbers)) 
 		self.min_max = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/min_max.npy')
+
+		self.min_max_SMEAR = np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/min_max.npy')
+
+		self.min_max_SMEAR[0][0] = -15
+		self.min_max_SMEAR[0][1] = 15
+		self.min_max_SMEAR[1][0] = -15
+		self.min_max_SMEAR[1][1] = 15
 
 	def load_generator(self, generator_filename='generator.h5'):
 		''' Load the pre-trained generator model from the module directory. '''
@@ -1083,6 +1091,187 @@ class muGAN:
 
 
 
+
+
+
+
+
+
+
+
+
+	def load_generator_SMEAR(self, generator_filename='generator_smear.h5'):
+		''' Load the pre-trained generator model from the module directory. '''
+		print(' ')
+		print('Loading Generator SMEAR: %s ...'%generator_filename)
+		generator = load_model(os.path.dirname(os.path.realpath(__file__))+'/data_files/%s'%generator_filename,custom_objects={'_loss_generator':_loss_generator}, compile=False)
+		print('Loaded Generator SMEAR.')
+		print(' ')
+		return generator
+
+	def load_discriminator_SMEAR(self):
+		''' Load the pre-trained discriminator model from its weights saved in the module directory. '''
+		print(' ')
+		print('Loading Discriminator SMEAR...')
+		discriminator = create_discriminator_SMEAR()
+		discriminator.load_weights(os.path.dirname(os.path.realpath(__file__))+'/data_files/discriminator_weights_smear.h5')
+		print('Loaded Discriminator SMEAR.')
+		print(' ')
+		return discriminator
+
+	def pre_process_SMEAR(self, input_array):
+		''' Post process generated vectors into physical values. '''
+		input_array[np.where(input_array[:,0]==-13),0] = -1
+		input_array[np.where(input_array[:,0]!=-13),0] = 1
+		for index in [1,2,4,5,6]:
+			range_i = self.min_max_SMEAR[index-1][1] - self.min_max_SMEAR[index-1][0]
+			input_array[:,index] = ((input_array[:,index] - self.min_max_SMEAR[index-1][0])/range_i) * 1.94 - 0.97
+		for index in [3]:
+			range_i = self.min_max_SMEAR[index-1][1] - self.min_max_SMEAR[index-1][0]
+			input_array[:,index] = ((input_array[:,index] - self.min_max_SMEAR[index-1][0])/range_i) * 1.97 - 1
+		# for index in [1,2]:
+		# 	sign = np.sign(input_array[np.where((input_array[:,1]!=0)&(input_array[:,2]!=0)),index])
+		# 	input_array[np.where((input_array[:,1]!=0)&(input_array[:,2]!=0)),index] = np.multiply(np.sqrt(np.abs(input_array[np.where((input_array[:,1]!=0)&(input_array[:,2]!=0)),index])),sign)
+
+		input_array[np.where(input_array<-1)] = -1
+		input_array[np.where(input_array>1)] = 1
+
+		return input_array
+
+	def post_process_SMEAR(self, input_array):
+		''' Post process generated vectors into physical values. '''
+		input_array[np.where(input_array[:,0]<0),0] = -13
+		input_array[np.where(input_array[:,0]>0),0] = 13
+		for index in range(1, 3):
+			for x in range(0, np.shape(input_array)[0]):
+				input_array[x][index] = (((input_array[x][index]+0.97)/1.94)*(self.min_max_SMEAR[index-1][1] - self.min_max_SMEAR[index-1][0])+ self.min_max_SMEAR[index-1][0])
+		for index in [3]:
+			for x in range(0, np.shape(input_array)[0]):
+				input_array[x][index] = (((input_array[x][index]+1)/1.97)*(self.min_max_SMEAR[index-1][1] - self.min_max_SMEAR[index-1][0])+ self.min_max_SMEAR[index-1][0]) + 0.42248158 # Small correction to GAN start of target values.
+		for index in range(4, 7):
+			for x in range(0, np.shape(input_array)[0]):
+				input_array[x][index] = (((input_array[x][index]+0.97)/1.94)*(self.min_max_SMEAR[index-1][1] - self.min_max_SMEAR[index-1][0])+ self.min_max_SMEAR[index-1][0])
+		return input_array
+
+	def generate_SMEAR(self, size, tuned_aux = True, generator_filename='generator_smear.h5'):
+		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
+
+		if size > 50000:
+			images, aux_values_total = self.generate_large_SMEAR(size, tuned_aux, generator_filename=generator_filename)   
+		else:
+			generator = self.load_generator_SMEAR(generator_filename=generator_filename)
+
+			# if tuned_aux == False:
+			aux_gan = np.abs(np.random.normal(0, 1, (int(size), 6)))
+			# elif tuned_aux == True:
+			# 	aux_gan = self.generate_aux_tuned(int(size), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
+			charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+			# print('ch',charge_gan)
+			gen_noise = np.random.normal(0, 1, (int(size), 100))
+			images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan]))
+			# print('im',images[:,0])
+			images = self.post_process_SMEAR(images)
+			aux_values_total = aux_gan
+			print('Generated vector column names:')
+			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' ')
+
+		return images, aux_values_total
+
+	def generate_large_SMEAR(self, size, tuned_aux, generator_filename):
+		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
+		generator = self.load_generator_SMEAR(generator_filename=generator_filename)
+
+		# if tuned_aux == False:
+		aux_gan = np.abs(np.random.normal(0, 1, (int(size), 6)))
+		# elif tuned_aux == True:
+		# 	aux_gan = self.generate_aux_tuned(int(size), np.load(os.path.dirname(os.path.realpath(__file__))+'/data_files/tuned_aux_parameters.npy'))
+
+		charge_gan = np.expand_dims(np.random.choice([-1,1],size=(size,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+		gen_noise = np.random.normal(0, 1, (int(size), 100))
+		images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_gan,1), charge_gan], batch_size=25000))
+
+		images = self.post_process_SMEAR(images)
+
+		images_total = images
+		aux_total = aux_gan
+
+		print('Generated',np.shape(images_total)[0],'muons.')
+		print('Generated vector column names:')
+		print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+		print(' ')
+
+		return images_total, aux_total
+
+
+	def generate_enhanced_from_seed_kinematics_EVO_ALGO_SMEAR(self, size, seed_vectors, aux_multiplication_factor=1, generator_filename='generator_smear.h5'):
+		''' Generate enhanced distributions based on a seed distribution. '''
+
+		if np.shape(seed_vectors)[1] != 7:
+			print('ERROR: Input seed_vectors as vector of shape [n,7] with columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] of physical values.')
+			quit()
+		else:
+			seed_vectors = self.pre_process_SMEAR(seed_vectors)
+
+			discriminator = self.load_discriminator_SMEAR()
+
+			aux_values = np.swapaxes(np.squeeze(discriminator.predict(np.expand_dims(seed_vectors,1)))[1:],0,1)
+
+
+			aux_values = np.take(aux_values,np.random.permutation(aux_values.shape[0]),axis=0,out=aux_values)
+			aux_values[:int(np.shape(aux_values)[0]*0.2),5] = aux_values[:int(np.shape(aux_values)[0]*0.2),5] + np.abs(np.random.normal(0,0.25,int(np.shape(aux_values)[0]*0.2))) + 1
+			aux_values = np.take(aux_values,np.random.permutation(aux_values.shape[0]),axis=0,out=aux_values)
+			# print(np.shape(aux_values)[0], int(np.shape(aux_values)[0]*0.3))
+			# quit()
+
+			aux_values = aux_values * aux_multiplication_factor
+
+			iterations = int(np.floor(size/50000))
+			leftovers = size - iterations*50000
+
+			print(size, iterations, leftovers)
+			generator = self.load_generator_SMEAR(generator_filename=generator_filename)
+
+			print('Producing enhanced distribution of ',size,'muons, based on',np.shape(aux_values)[0],'seed muons.')
+
+			# Pick random choices WITH REPLACEMENT from the seed auxiliary distribution
+			# Replication shouldn't matter, or effects will be small, as most of the variation will come in from the gen_noise vector.
+
+			images_total = np.empty((0,7))
+			aux_values_total = np.empty((0,6))
+
+			while np.shape(images_total)[0]<size:
+
+				aux_values = aux_values[np.random.choice(np.arange(np.shape(aux_values)[0]),size=(50000),replace=True)]
+
+
+				charge_gan = np.expand_dims(np.random.choice([-1,1],size=(50000,1),p=[1-self.Fraction_pos,self.Fraction_pos],replace=True),1)
+				gen_noise = np.random.normal(0, 1, (int(50000), 100))
+
+				images = np.squeeze(generator.predict([np.expand_dims(gen_noise,1), np.expand_dims(aux_values,1), charge_gan], batch_size=100))
+
+				images = self.post_process_SMEAR(images)
+
+				mom = np.sqrt(images[:,4]**2+images[:,5]**2+images[:,6]**2)
+				mom_t = np.sqrt(images[:,4]**2+images[:,5]**2)
+
+				hist = np.histogram2d(mom, mom_t, bins=50, range=[[0,400],[0,6]])
+
+
+				images_total = np.concatenate((images_total, images),axis=0)
+				aux_values_total = np.concatenate((aux_values_total, aux_values),axis=0)
+	
+
+			images_total = images_total[:size]
+			aux_values_total = aux_values_total[:size]
+
+
+			print('Enhanced distribution generated.')
+			print('Generated vector column names:')
+			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
+			print(' ')
+
+			return images_total, aux_values_total
 
 
 
