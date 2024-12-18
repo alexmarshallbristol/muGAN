@@ -16,7 +16,7 @@ alias pip=/software/am13743/SHiP/GANenv/bin/pip
 conda install --prefix /software/am13743/SHiP/GANenv tensorflow-gpu==2.2
 pip install matplotlib
 pip install pandas
-pip install uproot
+pip install uproot3
 
 python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
 
