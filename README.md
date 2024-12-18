@@ -6,6 +6,19 @@ experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.044
 
 **SLIDES INTRODUCING USE FOR MUON SHIELD OPTIMISATION CAN BE FOUND: [Information_for_Muon_Shield_Optimisation.pdf](Information_for_Muon_Shield_Optimisation.pdf)**
 
+## How to install env
+
+conda create --prefix /software/am13743/SHiP/GANenv/ python=3.6
+alias python=/software/am13743/SHiP/GANenv/bin/python3.6
+alias python3=/software/am13743/SHiP/GANenv/bin/python3.6
+export PYTHONPATH=/software/am13743/SHiP/GANenv/lib/python3.6/site-packages/
+alias pip=/software/am13743/SHiP/GANenv/bin/pip
+pip install tensorflow==1.7
+pip install keras
+pip install tensorflow==2.2
+pip install pandas
+
+
 ## How to use - Muon Shield Optimisation
 
 Clone:

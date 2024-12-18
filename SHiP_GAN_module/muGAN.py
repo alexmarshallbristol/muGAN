@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from .Create_Discriminator import create_discriminator
 from .Create_Discriminator_SMEAR import create_discriminator_SMEAR
-
+import pandas as pd
 
 def _loss_generator(y_true, y_pred):
 	y_pred = K.clip(y_pred, _EPSILON, 1.0-_EPSILON)
@@ -239,7 +239,7 @@ class muGAN:
 
 
 
-	def generate(self, size, tuned_aux = True, generator_filename='generator.h5'):
+	def generate(self, size, tuned_aux = True, return_aux_values=False, generator_filename='generator.h5'):
 		''' Generate muon kinematic vectors with normally distributed auxiliary values. '''
 
 		if size > 50000:
@@ -258,11 +258,13 @@ class muGAN:
 			# print('im',images[:,0])
 			images = self.post_process(images)
 			aux_values_total = aux_gan
-			print('Generated vector column names:')
-			print(' Pdg, StartX, StartY, StartZ, Px, Py, Pz')
-			print(' ')
 
-		return images, aux_values_total
+		images = pd.DataFrame(data=images,columns=["Pdg", "StartX", "StartY", "StartZ", "Px", "Py", "Pz"])
+
+		if return_aux_values:
+			return images, aux_values_total
+		else:
+			return images
 
 
 	def generate_large(self, size, tuned_aux, generator_filename):
@@ -682,6 +684,8 @@ class muGAN:
 
 	def plot_kinematics(self, data, filename='Generated_kinematics.png',log=True, bins=100, normalize_colormaps=True):
 		''' Plot the kinematics of an input vector. The input is assumed to be of columns [Pdg, StartX, StartY, StartZ, Px, Py, Pz] in an [n,7] shape. '''
+
+		data = np.asarray(data)
 
 		if np.shape(data)[1] not in [6, 7]:
 			print('Input a vector of shape [n,6] or [n,7]')
