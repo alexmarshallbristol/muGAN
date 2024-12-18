@@ -8,15 +8,17 @@ experiment using Generative Adversarial Networks](https://arxiv.org/abs/1909.044
 
 ## How to install env
 
-conda create --prefix /software/am13743/SHiP/GANenv/ python=3.6
-alias python=/software/am13743/SHiP/GANenv/bin/python3.6
-alias python3=/software/am13743/SHiP/GANenv/bin/python3.6
-export PYTHONPATH=/software/am13743/SHiP/GANenv/lib/python3.6/site-packages/
+conda create --prefix /software/am13743/SHiP/GANenv/ python=3.7
+alias python=/software/am13743/SHiP/GANenv/bin/python3.7
+alias python3=/software/am13743/SHiP/GANenv/bin/python3.7
+export PYTHONPATH=/software/am13743/SHiP/GANenv/lib/python3.7/site-packages/
 alias pip=/software/am13743/SHiP/GANenv/bin/pip
-pip install tensorflow==1.7
-pip install keras
-pip install tensorflow==2.2
+conda install --prefix /software/am13743/SHiP/GANenv tensorflow-gpu==2.2
+pip install matplotlib
 pip install pandas
+pip install uproot
+
+python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
 
 
 ## How to use - Muon Shield Optimisation
