@@ -9,7 +9,7 @@ import tensorflow as tf
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.compat.v1.Session(config=config)
-tf.compat.v1.keras.backend.set_session(sess)
+# tf.compat.v1.keras.backend.set_session(sess)
 
 from tensorflow.keras.models import load_model
 from tensorflow.keras import backend as K
@@ -39,7 +39,8 @@ from rich.progress import Progress
 from rich.console import Console
 from contextlib import contextmanager
 from datetime import datetime
-import uproot3 as uproot
+# import uproot3 as uproot
+import uproot
 
 console = Console()
 
@@ -1305,105 +1306,156 @@ class muGAN:
 			status_message=f"[bold green]Saving {np.shape(data)[0]} muons to {filename}...",
 			complete_message=f"[bold green]Done, ouput at {filename} :white_check_mark:",
 		):
-
 			shape = np.shape(data)[0]
 
-			data[
-				:, 3
-			] += 2084.5  # Shift target to 50m. In accordance with primGen.SetTarget(ship_geo.target.z0+50*u.m,0.) in run_simScript.py
-			# The start of target in the GAN training data is -7084.5.
-
-			dtype = ">f4"
-
-			Event_ID = uproot.newbranch(dtype)
-			ID = uproot.newbranch(dtype)
-			Parent_ID = uproot.newbranch(dtype)
-			Pythia_ID = uproot.newbranch(dtype)
-			ECut = uproot.newbranch(dtype)
-			W = uproot.newbranch(dtype)
-			X = uproot.newbranch(dtype)
-			Y = uproot.newbranch(dtype)
-			Z = uproot.newbranch(dtype)
-			PX = uproot.newbranch(dtype)
-			PY = uproot.newbranch(dtype)
-			PZ = uproot.newbranch(dtype)
-			Release_Time = uproot.newbranch(dtype)
-			Mother_ID = uproot.newbranch(dtype)
-			Process_ID = uproot.newbranch(dtype)
-
-			branchdict = {
-				"event_id": Event_ID,
-				"id": ID,
-				"parentid": Parent_ID,
-				"pythiaid": Pythia_ID,
-				"ecut": ECut,
-				"w": W,
-				"x": X,
-				"y": Y,
-				"z": Z,
-				"px": PX,
-				"py": PY,
-				"pz": PZ,
-				"release_time": Release_Time,
-				"mother_id": Mother_ID,
-				"process_id": Process_ID,
-			}
-
-			tree = uproot.newtree(branchdict, title="pythia8-Geant4")
+			data_dict = {
+							"event_id": np.ones(shape).astype(np.float64),
+							"id": data[:, 0].astype(np.float64),
+							"parentid": np.zeros(shape).astype(np.float64),
+							"pythiaid": data[:, 0].astype(np.float64),
+							"ecut": np.array(np.ones(shape) * 0.00001).astype(np.float64),
+							"w": np.ones(shape).astype(np.float64),
+							"x": np.array(data[:, 1] * 0.01).astype(np.float64),
+							"y": np.array(data[:, 2] * 0.01).astype(np.float64),
+							"z": np.array(data[:, 3] * 0.01).astype(np.float64),
+							"px": data[:, 4].astype(np.float64),
+							"py": data[:, 5].astype(np.float64),
+							"pz": data[:, 6].astype(np.float64),
+							"release_time": np.zeros(shape).astype(np.float64),
+							"mother_id": np.array(np.ones(shape) * 99).astype(np.float64),
+							"process_id": np.array(np.ones(shape) * 99).astype(np.float64),
+						}
 
 			with uproot.recreate(filename) as f:
+				# Create a new tree with the specified branches and types
+				f["pythia8-Geant4"] = data_dict
+				# Add buffer event at the end. This will not be read into simulation.
+				# f["pythia8-Geant4"].extend(
+				# 		{
+				# 			"event_id": [0],
+				# 			"id": [0],
+				# 			"parentid": [0],
+				# 			"pythiaid": [0],
+				# 			"ecut": [0],
+				# 			"w": [0],
+				# 			"x": [0],
+				# 			"y": [0],
+				# 			"z": [0],
+				# 			"px": [0],
+				# 			"py": [0],
+				# 			"pz": [0],
+				# 			"release_time": [0],
+				# 			"mother_id": [0],
+				# 			"process_id": [0],
+				# 		}
+				# 	)
 
-				f["pythia8-Geant4"] = tree
 
-				f["pythia8-Geant4"].extend(
-					{
-						"event_id": np.ones(shape).astype(np.float64),
-						"id": data[:, 0].astype(np.float64),
-						"parentid": np.zeros(shape).astype(np.float64),
-						"pythiaid": data[:, 0].astype(np.float64),
-						"ecut": np.array(np.ones(shape) * 0.00001).astype(np.float64),
-						"w": np.ones(shape).astype(np.float64),
-						"x": np.array(data[:, 1] * 0.01).astype(np.float64),
-						"y": np.array(data[:, 2] * 0.01).astype(np.float64),
-						"z": np.array(data[:, 3] * 0.01).astype(np.float64),
-						"px": data[:, 4].astype(np.float64),
-						"py": data[:, 5].astype(np.float64),
-						"pz": data[:, 6].astype(np.float64),
-						"release_time": np.zeros(shape).astype(np.float64),
-						"mother_id": np.array(np.ones(shape) * 99).astype(np.float64),
-						"process_id": np.array(np.ones(shape) * 99).astype(np.float64),
-					}
-				)
-				# Not clear if all the datatype formatting is needed. Can be fiddly with ROOT datatypes. This works so I left it.
 
-				if add_buffer:
-					# Add buffer event at the end. This will not be read into simulation.
-					f["pythia8-Geant4"].extend(
-						{
-							"event_id": [0],
-							"id": [0],
-							"parentid": [0],
-							"pythiaid": [0],
-							"ecut": [0],
-							"w": [0],
-							"x": [0],
-							"y": [0],
-							"z": [0],
-							"px": [0],
-							"py": [0],
-							"pz": [0],
-							"release_time": [0],
-							"mother_id": [0],
-							"process_id": [0],
-						}
-					)
+		### ancient uproot3
+		# with status_execution(
+		# 	status_message=f"[bold green]Saving {np.shape(data)[0]} muons to {filename}...",
+		# 	complete_message=f"[bold green]Done, ouput at {filename} :white_check_mark:",
+		# ):
 
-			# print(' ')
-			# print(' ')
-			# print('Saved',shape,'muons to',filename,'.')
-			# print('run_simScript.py must be run with the option: -n',shape,'(or lower)')
-			# print(' ')
-			# print(' ')
+		# 	shape = np.shape(data)[0]
+
+		# 	data[
+		# 		:, 3
+		# 	] += 2084.5  # Shift target to 50m. In accordance with primGen.SetTarget(ship_geo.target.z0+50*u.m,0.) in run_simScript.py
+		# 	# The start of target in the GAN training data is -7084.5.
+
+		# 	dtype = ">f4"
+
+		# 	Event_ID = uproot.newbranch(dtype)
+		# 	ID = uproot.newbranch(dtype)
+		# 	Parent_ID = uproot.newbranch(dtype)
+		# 	Pythia_ID = uproot.newbranch(dtype)
+		# 	ECut = uproot.newbranch(dtype)
+		# 	W = uproot.newbranch(dtype)
+		# 	X = uproot.newbranch(dtype)
+		# 	Y = uproot.newbranch(dtype)
+		# 	Z = uproot.newbranch(dtype)
+		# 	PX = uproot.newbranch(dtype)
+		# 	PY = uproot.newbranch(dtype)
+		# 	PZ = uproot.newbranch(dtype)
+		# 	Release_Time = uproot.newbranch(dtype)
+		# 	Mother_ID = uproot.newbranch(dtype)
+		# 	Process_ID = uproot.newbranch(dtype)
+
+		# 	branchdict = {
+		# 		"event_id": Event_ID,
+		# 		"id": ID,
+		# 		"parentid": Parent_ID,
+		# 		"pythiaid": Pythia_ID,
+		# 		"ecut": ECut,
+		# 		"w": W,
+		# 		"x": X,
+		# 		"y": Y,
+		# 		"z": Z,
+		# 		"px": PX,
+		# 		"py": PY,
+		# 		"pz": PZ,
+		# 		"release_time": Release_Time,
+		# 		"mother_id": Mother_ID,
+		# 		"process_id": Process_ID,
+		# 	}
+
+		# 	tree = uproot.newtree(branchdict, title="pythia8-Geant4")
+
+		# 	with uproot.recreate(filename) as f:
+
+		# 		f["pythia8-Geant4"] = tree
+
+		# 		f["pythia8-Geant4"].extend(
+		# 			{
+		# 				"event_id": np.ones(shape).astype(np.float64),
+		# 				"id": data[:, 0].astype(np.float64),
+		# 				"parentid": np.zeros(shape).astype(np.float64),
+		# 				"pythiaid": data[:, 0].astype(np.float64),
+		# 				"ecut": np.array(np.ones(shape) * 0.00001).astype(np.float64),
+		# 				"w": np.ones(shape).astype(np.float64),
+		# 				"x": np.array(data[:, 1] * 0.01).astype(np.float64),
+		# 				"y": np.array(data[:, 2] * 0.01).astype(np.float64),
+		# 				"z": np.array(data[:, 3] * 0.01).astype(np.float64),
+		# 				"px": data[:, 4].astype(np.float64),
+		# 				"py": data[:, 5].astype(np.float64),
+		# 				"pz": data[:, 6].astype(np.float64),
+		# 				"release_time": np.zeros(shape).astype(np.float64),
+		# 				"mother_id": np.array(np.ones(shape) * 99).astype(np.float64),
+		# 				"process_id": np.array(np.ones(shape) * 99).astype(np.float64),
+		# 			}
+		# 		)
+		# 		# Not clear if all the datatype formatting is needed. Can be fiddly with ROOT datatypes. This works so I left it.
+
+		# 		if add_buffer:
+		# 			# Add buffer event at the end. This will not be read into simulation.
+		# 			f["pythia8-Geant4"].extend(
+		# 				{
+		# 					"event_id": [0],
+		# 					"id": [0],
+		# 					"parentid": [0],
+		# 					"pythiaid": [0],
+		# 					"ecut": [0],
+		# 					"w": [0],
+		# 					"x": [0],
+		# 					"y": [0],
+		# 					"z": [0],
+		# 					"px": [0],
+		# 					"py": [0],
+		# 					"pz": [0],
+		# 					"release_time": [0],
+		# 					"mother_id": [0],
+		# 					"process_id": [0],
+		# 				}
+		# 			)
+
+		# 	# print(' ')
+		# 	# print(' ')
+		# 	# print('Saved',shape,'muons to',filename,'.')
+		# 	# print('run_simScript.py must be run with the option: -n',shape,'(or lower)')
+		# 	# print(' ')
+		# 	# print(' ')
 
 	def compare_generators(
 		self,
